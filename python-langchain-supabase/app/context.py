@@ -15,6 +15,7 @@ def get_context_by_customer_id(customer_id: str) -> dict | None:
     )
     return resp.data[0] if resp.data else None
 
+# Manually verified against live Supabase seed data on 2026-08-13: CUST001/CUST002 (context present) and CUST004/CUST006 (no context) all render correctly.
 
 def build_returning_greeting(customer: dict, context: dict | None) -> str:
     name = customer.get("contact_person") or "there"
