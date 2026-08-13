@@ -1,0 +1,36 @@
+# Fill in each @github-handle below once you have it, then commit this file
+# for real. Until then this documents intended ownership so PRs land with
+# the right reviewer even before GitHub enforces it.
+#
+# Ownership matches README.md's "Module ownership" table.
+
+# Frontend upload UI
+/frontend/                                            @FRONTEND_OWNER
+
+# CRM lookup — Backend 1
+/python-langchain-supabase/app/crm_lookup.py          @BACKEND1_OWNER
+
+# Customer registration — Backend 2
+/python-langchain-supabase/app/crm_registration.py    @BACKEND2_OWNER
+
+# Prior-interaction context — Backend 3
+/python-langchain-supabase/app/context.py             @BACKEND3_OWNER
+
+# Calendar booking — Backend 4
+/python-langchain-supabase/app/calendar_data.py       @BACKEND4_OWNER
+
+# Shared utility both CRM owners depend on — do not edit without syncing
+/python-langchain-supabase/app/phone_utils.py         @LEAD_OWNER
+
+# Orchestration / integration — lead
+/python-langchain-supabase/app/agent.py               @LEAD_OWNER
+/python-langchain-supabase/app/tools.py               @LEAD_OWNER
+/python-langchain-supabase/app/flow.py                @LEAD_OWNER
+/python-langchain-supabase/app/main.py                @LEAD_OWNER
+/python-langchain-supabase/app/db.py                  @LEAD_OWNER
+/python-langchain-supabase/app/session_store.py       @LEAD_OWNER
+/python-langchain-supabase/app/idempotency.py         @LEAD_OWNER
+/python-langchain-supabase/app/whatsapp_provider.py   @LEAD_OWNER
+/python-langchain-supabase/app/pain_point_agent.py    @LEAD_OWNER
+/python-langchain-supabase/app/scheduling_agent.py    @LEAD_OWNER
+/python-langchain-supabase/db/                        @LEAD_OWNER

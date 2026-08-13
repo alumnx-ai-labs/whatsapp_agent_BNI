@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 2350" font-family="Arial, Helvetica, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#333"/>
+    </marker>
+  </defs>
+  <rect width="1300" height="2350" fill="#ffffff"/>
+
+  <!-- style helpers via repeated rect/text -->
+  <!-- Node 1: QR scan -->
+  <rect x="500" y="20" width="300" height="60" rx="10" fill="#EEF3FF" stroke="#3355AA" stroke-width="1.5"/>
+  <text x="650" y="45" text-anchor="middle" font-size="15">Customer scans QR code</text>
+  <text x="650" y="65" text-anchor="middle" font-size="12" fill="#555">wa.me link, text="Hello Oscar"</text>
+
+  <!-- Node 2: Hello Oscar API -->
+  <rect x="500" y="110" width="300" height="55" rx="10" fill="#FFF6E5" stroke="#B8860B" stroke-width="1.5"/>
+  <text x="650" y="133" text-anchor="middle" font-size="15">Hello Oscar API receives msg</text>
+  <text x="650" y="150" text-anchor="middle" font-size="12" fill="#555">WhatsApp Business API webhook</text>
+
+  <!-- Node 3: existing user decision -->
+  <polygon points="650,195 800,255 650,315 500,255" fill="#FFF0F0" stroke="#AA3344" stroke-width="1.5"/>
+  <text x="650" y="250" text-anchor="middle" font-size="13">Existing user?</text>
+  <text x="650" y="268" text-anchor="middle" font-size="11" fill="#555">Lookup by phone number</text>
+
+  <!-- Node 4a: returning greeting -->
+  <rect x="330" y="360" width="250" height="70" rx="10" fill="#EAF7EE" stroke="#2E8B57" stroke-width="1.5"/>
+  <text x="455" y="388" text-anchor="middle" font-size="13">Personalized greeting</text>
+  <text x="455" y="406" text-anchor="middle" font-size="11" fill="#555">"Hello Sheba, how are you..."</text>
+
+  <!-- Node 4b: new user welcome -->
+  <rect x="720" y="360" width="270" height="70" rx="10" fill="#EAF7EE" stroke="#2E8B57" stroke-width="1.5"/>
+  <text x="855" y="382" text-anchor="middle" font-size="13">First-time welcome</text>
+  <text x="855" y="400" text-anchor="middle" font-size="11" fill="#555">Ask for name +</text>
+  <text x="855" y="415" text-anchor="middle" font-size="11" fill="#555">business name</text>
+
+  <!-- Node 5: user replies name -->
+  <rect x="720" y="465" width="270" height="55" rx="10" fill="#F5F5F5" stroke="#555" stroke-width="1.5"/>
+  <text x="855" y="497" text-anchor="middle" font-size="13">User replies with details</text>
+
+  <!-- Node 6: ask pain point -->
+  <rect x="500" y="565" width="300" height="70" rx="10" fill="#EEF3FF" stroke="#3355AA" stroke-width="1.5"/>
+  <text x="650" y="592" text-anchor="middle" font-size="13">Ask about business pain point</text>
+  <text x="650" y="610" text-anchor="middle" font-size="11" fill="#555">"Any pain point AI can help solve?"</text>
+
+  <!-- Node 7: user submits -->
+  <rect x="500" y="670" width="300" height="55" rx="10" fill="#F5F5F5" stroke="#555" stroke-width="1.5"/>
+  <text x="650" y="702" text-anchor="middle" font-size="13">User submits pain point</text>
+
+  <!-- Node 8: AI validation decision -->
+  <polygon points="650,750 870,845 650,940 430,845" fill="#FFF0F0" stroke="#AA3344" stroke-width="1.5"/>
+  <text x="650" y="825" text-anchor="middle" font-size="12">AI validation:</text>
+  <text x="650" y="843" text-anchor="middle" font-size="11" fill="#555">1. Genuine business pain point?</text>
+  <text x="650" y="860" text-anchor="middle" font-size="11" fill="#555">2. Details clear enough?</text>
+
+  <!-- Node 9: elaborate -->
+  <rect x="920" y="815" width="260" height="55" rx="10" fill="#FFF6E5" stroke="#B8860B" stroke-width="1.5"/>
+  <text x="1050" y="847" text-anchor="middle" font-size="13">"Please elaborate..."</text>
+
+  <!-- Node 10: acknowledgment + ask time -->
+  <rect x="480" y="985" width="340" height="80" rx="10" fill="#EAF7EE" stroke="#2E8B57" stroke-width="1.5"/>
+  <text x="650" y="1013" text-anchor="middle" font-size="13">Acknowledge pain point +</text>
+  <text x="650" y="1032" text-anchor="middle" font-size="11" fill="#555">"Can you spare 30 min to</text>
+  <text x="650" y="1048" text-anchor="middle" font-size="11" fill="#555">discuss further?"</text>
+
+  <!-- Node 11: willing decision -->
+  <polygon points="650,1105 800,1170 650,1235 500,1170" fill="#FFF0F0" stroke="#AA3344" stroke-width="1.5"/>
+  <text x="650" y="1174" text-anchor="middle" font-size="13">Willing to meet?</text>
+
+  <!-- Node 12: no - log lead -->
+  <rect x="850" y="1140" width="300" height="70" rx="10" fill="#F0F0F0" stroke="#777" stroke-width="1.5"/>
+  <text x="1000" y="1168" text-anchor="middle" font-size="13">Thank user; log pain point</text>
+  <text x="1000" y="1185" text-anchor="middle" font-size="11" fill="#555">for later follow-up. End.</text>
+
+  <!-- Node 13: propose time -->
+  <rect x="480" y="1280" width="340" height="70" rx="10" fill="#EEF3FF" stroke="#3355AA" stroke-width="1.5"/>
+  <text x="650" y="1308" text-anchor="middle" font-size="13">Propose date/time for</text>
+  <text x="650" y="1325" text-anchor="middle" font-size="11" fill="#555">30-min AI solutions catchup</text>
+
+  <!-- Node 14: user shares availability -->
+  <rect x="480" y="1390" width="340" height="55" rx="10" fill="#F5F5F5" stroke="#555" stroke-width="1.5"/>
+  <text x="650" y="1422" text-anchor="middle" font-size="13">User shares preferred availability</text>
+
+  <!-- Node 15: time works decision -->
+  <polygon points="650,1480 800,1545 650,1610 500,1545" fill="#FFF0F0" stroke="#AA3344" stroke-width="1.5"/>
+  <text x="650" y="1540" text-anchor="middle" font-size="12">Time works for</text>
+  <text x="650" y="1558" text-anchor="middle" font-size="12">business team?</text>
+
+  <!-- Node 16: confirm + book -->
+  <rect x="480" y="1650" width="340" height="70" rx="10" fill="#EAF7EE" stroke="#2E8B57" stroke-width="1.5"/>
+  <text x="650" y="1678" text-anchor="middle" font-size="13">Confirm meeting details</text>
+  <text x="650" y="1695" text-anchor="middle" font-size="11" fill="#555">Book calendar event via API</text>
+
+  <!-- Node 17: send confirmation -->
+  <rect x="480" y="1755" width="340" height="70" rx="10" fill="#EAF7EE" stroke="#2E8B57" stroke-width="1.5"/>
+  <text x="650" y="1783" text-anchor="middle" font-size="13">Send confirmation message</text>
+  <text x="650" y="1800" text-anchor="middle" font-size="11" fill="#555">Event details + RSVP link</text>
+
+  <!-- End nodes -->
+  <rect x="530" y="1860" width="240" height="50" rx="25" fill="#DDEEFF" stroke="#3355AA" stroke-width="1.5"/>
+  <text x="650" y="1890" text-anchor="middle" font-size="13">End: Meeting scheduled</text>
+
+  <rect x="900" y="1260" width="260" height="50" rx="25" fill="#EEEEEE" stroke="#777" stroke-width="1.5"/>
+  <text x="1030" y="1290" text-anchor="middle" font-size="13">End: Lead logged</text>
+
+  <!-- Edges -->
+  <line x1="650" y1="80" x2="650" y2="108" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="650" y1="165" x2="650" y2="193" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <line x1="580" y1="285" x2="470" y2="358" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="500" y="335" font-size="12" fill="#333">Yes</text>
+
+  <line x1="730" y1="280" x2="840" y2="358" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="790" y="335" font-size="12" fill="#333">No</text>
+
+  <line x1="855" y1="430" x2="855" y2="463" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- both greeting and name-reply merge into ask pain point -->
+  <path d="M455,430 C455,500 600,540 610,563" fill="none" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M855,520 C855,545 720,555 700,563" fill="none" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <line x1="650" y1="635" x2="650" y2="668" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="650" y1="725" x2="650" y2="748" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <line x1="810" y1="812" x2="920" y2="843" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="850" y="805" font-size="12" fill="#333">No / unclear</text>
+
+  <path d="M1050,815 C1050,760 750,700 660,748" fill="none" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <line x1="650" y1="940" x2="650" y2="983" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="665" y="965" font-size="12" fill="#333">Yes</text>
+
+  <line x1="650" y1="1065" x2="650" y2="1103" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <line x1="740" y1="1150" x2="850" y2="1160" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="800" y="1140" font-size="12" fill="#333">No</text>
+
+  <line x1="650" y1="1235" x2="650" y2="1278" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="665" y="1260" font-size="12" fill="#333">Yes</text>
+
+  <line x1="650" y1="1350" x2="650" y2="1388" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="650" y1="1445" x2="650" y2="1478" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <path d="M780,1520 C920,1450 900,1350 800,1310" fill="none" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="880" y="1430" font-size="12" fill="#333">No, propose alt.</text>
+
+  <line x1="650" y1="1610" x2="650" y2="1648" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="665" y="1632" font-size="12" fill="#333">Yes</text>
+
+  <line x1="650" y1="1720" x2="650" y2="1753" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="650" y1="1825" x2="650" y2="1858" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <line x1="1000" y1="1210" x2="1030" y2="1258" stroke="#333" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Legend -->
+  <rect x="60" y="2000" width="1180" height="300" rx="10" fill="#FAFAFA" stroke="#CCC" stroke-width="1"/>
+  <text x="80" y="2035" font-size="15" font-weight="bold">Legend</text>
+  <rect x="80" y="2055" width="24" height="18" fill="#EEF3FF" stroke="#3355AA"/>
+  <text x="115" y="2069" font-size="12">Bot message / system action</text>
+  <rect x="80" y="2085" width="24" height="18" fill="#F5F5F5" stroke="#555"/>
+  <text x="115" y="2099" font-size="12">User input</text>
+  <polygon points="92,2115 104,2124 92,2133 80,2124" fill="#FFF0F0" stroke="#AA3344"/>
+  <text x="115" y="2129" font-size="12">Decision point</text>
+  <rect x="80" y="2145" width="24" height="18" fill="#EAF7EE" stroke="#2E8B57"/>
+  <text x="115" y="2159" font-size="12">Positive-path outcome (ack, greeting, confirm, book)</text>
+  <rect x="80" y="2175" width="24" height="18" fill="#FFF6E5" stroke="#B8860B"/>
+  <text x="115" y="2189" font-size="12">Retry / clarification prompt</text>
+  <rect x="80" y="2205" width="24" height="18" fill="#F0F0F0" stroke="#777"/>
+  <text x="115" y="2219" font-size="12">Graceful exit (no meeting)</text>
+</svg>

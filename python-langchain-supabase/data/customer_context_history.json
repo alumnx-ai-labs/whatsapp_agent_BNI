@@ -1,0 +1,528 @@
+[
+  {
+    "customer_id": "CUST001",
+    "phone_number": "+91 95260 18159",
+    "business_name": "Sheba Textiles",
+    "contact_person": "Anita Reddy",
+    "relationship_stage": "past_customer_dormant",
+    "last_interaction_date": "2026-06-13",
+    "total_interactions": 4,
+    "personal_notes": {
+      "location": "Hyderabad",
+      "small_talk_topic": "biryani recommendations",
+      "preferred_tone": "casual",
+      "preferred_language": "English"
+    },
+    "pain_points_raised": [
+      {
+        "date": "2026-06-13",
+        "category": "Finance & Reporting",
+        "summary": "Cost tracking per project/order is inaccurate",
+        "status": "no_response"
+      }
+    ],
+    "conversation_history": [
+      {
+        "date": "2026-03-27",
+        "channel": "whatsapp",
+        "topic": "intro_greeting",
+        "summary": "First contact via QR scan. Customer shared name and business name (Sheba Textiles)."
+      },
+      {
+        "date": "2026-04-08",
+        "channel": "whatsapp",
+        "topic": "pain_point_discussion",
+        "summary": "Customer described a pain point related to customer support & service."
+      },
+      {
+        "date": "2026-05-10",
+        "channel": "whatsapp",
+        "topic": "meeting_scheduling",
+        "summary": "Discussed availability for a 30-min AI solutions catchup; time proposed."
+      },
+      {
+        "date": "2026-05-02",
+        "channel": "whatsapp",
+        "topic": "meeting_followup",
+        "summary": "Follow-up after scheduled meeting to check on next steps."
+      }
+    ],
+    "suggested_greeting_hint": "Reference biryani recommendations in Hyderabad and their business (Sheba Textiles) to personalize the greeting."
+  },
+  {
+    "customer_id": "CUST002",
+    "phone_number": "+91 98609 13909",
+    "business_name": "Big Beats Studio",
+    "contact_person": "Neha Sharma",
+    "relationship_stage": "past_customer_dormant",
+    "last_interaction_date": "2026-06-22",
+    "total_interactions": 1,
+    "personal_notes": {
+      "location": "Hyderabad",
+      "small_talk_topic": "biryani recommendations",
+      "preferred_tone": "casual",
+      "preferred_language": "English"
+    },
+    "pain_points_raised": [
+      {
+        "date": "2026-06-22",
+        "category": "Operations & Process Efficiency",
+        "summary": "No visibility into shipment/delivery delays",
+        "status": "captured_unqualified"
+      }
+    ],
+    "conversation_history": [
+      {
+        "date": "2026-06-22",
+        "channel": "whatsapp",
+        "topic": "intro_greeting",
+        "summary": "First contact via QR scan. Customer shared name and business name (Big Beats Studio)."
+      }
+    ],
+    "suggested_greeting_hint": "Reference biryani recommendations in Hyderabad and their business (Big Beats Studio) to personalize the greeting."
+  },
+  {
+    "customer_id": "CUST003",
+    "phone_number": "+91 98194 82199",
+    "business_name": "Coastal Spice Traders",
+    "contact_person": "Meena Joshi",
+    "relationship_stage": "warm_lead",
+    "last_interaction_date": "2026-05-27",
+    "total_interactions": 2,
+    "personal_notes": {
+      "location": "Kochi",
+      "small_talk_topic": "the backwaters tourist season",
+      "preferred_tone": "casual",
+      "preferred_language": "English + regional greeting"
+    },
+    "pain_points_raised": [
+      {
+        "date": "2026-05-27",
+        "category": "Sales & Customer Engagement",
+        "summary": "Manual lead qualification slowing down sales team",
+        "status": "meeting_scheduled"
+      }
+    ],
+    "conversation_history": [
+      {
+        "date": "2026-05-17",
+        "channel": "whatsapp",
+        "topic": "intro_greeting",
+        "summary": "First contact via QR scan. Customer shared name and business name (Coastal Spice Traders)."
+      },
+      {
+        "date": "2026-06-07",
+        "channel": "whatsapp",
+        "topic": "pain_point_discussion",
+        "summary": "Customer described a pain point related to customer support & service."
+      }
+    ],
+    "suggested_greeting_hint": "Reference the backwaters tourist season in Kochi and their business (Coastal Spice Traders) to personalize the greeting."
+  },
+  {
+    "customer_id": "CUST005",
+    "phone_number": "+91 95749 11862",
+    "business_name": "Greenfield Agro",
+    "contact_person": "Naveen Naidu",
+    "relationship_stage": "new_lead",
+    "last_interaction_date": "2026-05-19",
+    "total_interactions": 4,
+    "personal_notes": {
+      "location": "Coimbatore",
+      "small_talk_topic": "textile trade fair season",
+      "preferred_tone": "casual",
+      "preferred_language": "English"
+    },
+    "pain_points_raised": [],
+    "conversation_history": [
+      {
+        "date": "2026-04-13",
+        "channel": "whatsapp",
+        "topic": "intro_greeting",
+        "summary": "First contact via QR scan. Customer shared name and business name (Greenfield Agro)."
+      },
+      {
+        "date": "2026-05-03",
+        "channel": "whatsapp",
+        "topic": "pain_point_discussion",
+        "summary": "Customer described a pain point related to customer support & service."
+      },
+      {
+        "date": "2026-05-01",
+        "channel": "whatsapp",
+        "topic": "meeting_scheduling",
+        "summary": "Discussed availability for a 30-min AI solutions catchup; time proposed."
+      },
+      {
+        "date": "2026-06-03",
+        "channel": "whatsapp",
+        "topic": "meeting_followup",
+        "summary": "Follow-up after scheduled meeting to check on next steps."
+      }
+    ],
+    "suggested_greeting_hint": "Reference textile trade fair season in Coimbatore and their business (Greenfield Agro) to personalize the greeting."
+  },
+  {
+    "customer_id": "CUST008",
+    "phone_number": "+91 91276 84268",
+    "business_name": "Sunrise Dairy Co-op",
+    "contact_person": "Sheetal Chatterjee",
+    "relationship_stage": "new_lead",
+    "last_interaction_date": "2026-06-21",
+    "total_interactions": 5,
+    "personal_notes": {
+      "location": "Bengaluru",
+      "small_talk_topic": "Bengaluru traffic",
+      "preferred_tone": "casual",
+      "preferred_language": "English + regional greeting"
+    },
+    "pain_points_raised": [],
+    "conversation_history": [
+      {
+        "date": "2026-01-24",
+        "channel": "whatsapp",
+        "topic": "intro_greeting",
+        "summary": "First contact via QR scan. Customer shared name and business name (Sunrise Dairy Co-op)."
+      },
+      {
+        "date": "2026-02-02",
+        "channel": "whatsapp",
+        "topic": "pain_point_discussion",
+        "summary": "Customer described a pain point related to operations & process efficiency."
+      },
+      {
+        "date": "2026-02-07",
+        "channel": "whatsapp",
+        "topic": "meeting_scheduling",
+        "summary": "Discussed availability for a 30-min AI solutions catchup; time proposed."
+      },
+      {
+        "date": "2026-03-04",
+        "channel": "whatsapp",
+        "topic": "meeting_followup",
+        "summary": "Follow-up after scheduled meeting to check on next steps."
+      },
+      {
+        "date": "2026-04-22",
+        "channel": "whatsapp",
+        "topic": "general_checkin",
+        "summary": "Casual check-in, no new pain point raised."
+      }
+    ],
+    "suggested_greeting_hint": "Reference Bengaluru traffic in Bengaluru and their business (Sunrise Dairy Co-op) to personalize the greeting."
+  },
+  {
+    "customer_id": "CUST010",
+    "phone_number": "+91 99078 66661",
+    "business_name": "Coral Bay Resorts",
+    "contact_person": "Sunita Reddy",
+    "relationship_stage": "engaged_prospect",
+    "last_interaction_date": "2026-06-29",
+    "total_interactions": 2,
+    "personal_notes": {
+      "location": "Bengaluru",
+      "small_talk_topic": "Bengaluru traffic",
+      "preferred_tone": "friendly-professional",
+      "preferred_language": "English"
+    },
+    "pain_points_raised": [
+      {
+        "date": "2026-06-29",
+        "category": "Sales & Customer Engagement",
+        "summary": "Leads going cold due to inconsistent follow-up",
+        "status": "captured_unqualified"
+      }
+    ],
+    "conversation_history": [
+      {
+        "date": "2026-06-10",
+        "channel": "whatsapp",
+        "topic": "intro_greeting",
+        "summary": "First contact via QR scan. Customer shared name and business name (Coral Bay Resorts)."
+      },
+      {
+        "date": "2026-06-30",
+        "channel": "whatsapp",
+        "topic": "pain_point_discussion",
+        "summary": "Customer described a pain point related to operations & process efficiency."
+      }
+    ],
+    "suggested_greeting_hint": "Reference Bengaluru traffic in Bengaluru and their business (Coral Bay Resorts) to personalize the greeting."
+  },
+  {
+    "customer_id": "CUST014",
+    "phone_number": "+91 95388 85393",
+    "business_name": "Clearwater Consulting",
+    "contact_person": "Jyoti Patel",
+    "relationship_stage": "meeting_scheduled",
+    "last_interaction_date": "2026-06-10",
+    "total_interactions": 1,
+    "personal_notes": {
+      "location": "Ahmedabad",
+      "small_talk_topic": "Navratri prep",
+      "preferred_tone": "friendly-professional",
+      "preferred_language": "English"
+    },
+    "pain_points_raised": [
+      {
+        "date": "2026-06-10",
+        "category": "Sales & Customer Engagement",
+        "summary": "No system to flag at-risk / churning customers",
+        "status": "qualified_awaiting_meeting"
+      }
+    ],
+    "conversation_history": [
+      {
+        "date": "2026-06-10",
+        "channel": "whatsapp",
+        "topic": "intro_greeting",
+        "summary": "First contact via QR scan. Customer shared name and business name (Clearwater Consulting)."
+      }
+    ],
+    "suggested_greeting_hint": "Reference Navratri prep in Ahmedabad and their business (Clearwater Consulting) to personalize the greeting."
+  },
+  {
+    "customer_id": "CUST019",
+    "phone_number": "+91 95486 20579",
+    "business_name": "Ironclad Security",
+    "contact_person": "Bhavna Iyer",
+    "relationship_stage": "meeting_scheduled",
+    "last_interaction_date": "2026-07-28",
+    "total_interactions": 4,
+    "personal_notes": {
+      "location": "Jaipur",
+      "small_talk_topic": "the summer heat",
+      "preferred_tone": "casual",
+      "preferred_language": "English"
+    },
+    "pain_points_raised": [
+      {
+        "date": "2026-07-28",
+        "category": "Finance & Reporting",
+        "summary": "Invoice reconciliation done manually each month",
+        "status": "qualified_awaiting_meeting"
+      }
+    ],
+    "conversation_history": [
+      {
+        "date": "2026-05-20",
+        "channel": "whatsapp",
+        "topic": "intro_greeting",
+        "summary": "First contact via QR scan. Customer shared name and business name (Ironclad Security)."
+      },
+      {
+        "date": "2026-06-04",
+        "channel": "whatsapp",
+        "topic": "pain_point_discussion",
+        "summary": "Customer described a pain point related to customer support & service."
+      },
+      {
+        "date": "2026-06-21",
+        "channel": "whatsapp",
+        "topic": "meeting_scheduling",
+        "summary": "Discussed availability for a 30-min AI solutions catchup; time proposed."
+      },
+      {
+        "date": "2026-06-28",
+        "channel": "whatsapp",
+        "topic": "meeting_followup",
+        "summary": "Follow-up after scheduled meeting to check on next steps."
+      }
+    ],
+    "suggested_greeting_hint": "Reference the summer heat in Jaipur and their business (Ironclad Security) to personalize the greeting."
+  },
+  {
+    "customer_id": "CUST023",
+    "phone_number": "+91 97513 61341",
+    "business_name": "Golden Harvest Mills",
+    "contact_person": "Padma Krishnan",
+    "relationship_stage": "engaged_prospect",
+    "last_interaction_date": "2026-08-10",
+    "total_interactions": 4,
+    "personal_notes": {
+      "location": "Hyderabad",
+      "small_talk_topic": "biryani recommendations",
+      "preferred_tone": "friendly-professional",
+      "preferred_language": "English + Hindi mix"
+    },
+    "pain_points_raised": [
+      {
+        "date": "2026-08-10",
+        "category": "Sales & Customer Engagement",
+        "summary": "Leads going cold due to inconsistent follow-up",
+        "status": "meeting_scheduled"
+      }
+    ],
+    "conversation_history": [
+      {
+        "date": "2026-04-30",
+        "channel": "whatsapp",
+        "topic": "intro_greeting",
+        "summary": "First contact via QR scan. Customer shared name and business name (Golden Harvest Mills)."
+      },
+      {
+        "date": "2026-05-19",
+        "channel": "whatsapp",
+        "topic": "pain_point_discussion",
+        "summary": "Customer described a pain point related to operations & process efficiency."
+      },
+      {
+        "date": "2026-05-18",
+        "channel": "whatsapp",
+        "topic": "meeting_scheduling",
+        "summary": "Discussed availability for a 30-min AI solutions catchup; time proposed."
+      },
+      {
+        "date": "2026-06-08",
+        "channel": "whatsapp",
+        "topic": "meeting_followup",
+        "summary": "Follow-up after scheduled meeting to check on next steps."
+      }
+    ],
+    "suggested_greeting_hint": "Reference biryani recommendations in Hyderabad and their business (Golden Harvest Mills) to personalize the greeting."
+  },
+  {
+    "customer_id": "CUST030",
+    "phone_number": "+91 98433 53265",
+    "business_name": "Titan Fabricators",
+    "contact_person": "Priya Kapoor",
+    "relationship_stage": "meeting_scheduled",
+    "last_interaction_date": "2026-07-26",
+    "total_interactions": 5,
+    "personal_notes": {
+      "location": "Hyderabad",
+      "small_talk_topic": "biryani recommendations",
+      "preferred_tone": "casual",
+      "preferred_language": "English"
+    },
+    "pain_points_raised": [
+      {
+        "date": "2026-07-26",
+        "category": "Sales & Customer Engagement",
+        "summary": "Manual lead qualification slowing down sales team",
+        "status": "no_response"
+      }
+    ],
+    "conversation_history": [
+      {
+        "date": "2026-02-16",
+        "channel": "whatsapp",
+        "topic": "intro_greeting",
+        "summary": "First contact via QR scan. Customer shared name and business name (Titan Fabricators)."
+      },
+      {
+        "date": "2026-03-13",
+        "channel": "whatsapp",
+        "topic": "pain_point_discussion",
+        "summary": "Customer described a pain point related to sales & customer engagement."
+      },
+      {
+        "date": "2026-03-26",
+        "channel": "whatsapp",
+        "topic": "meeting_scheduling",
+        "summary": "Discussed availability for a 30-min AI solutions catchup; time proposed."
+      },
+      {
+        "date": "2026-03-21",
+        "channel": "whatsapp",
+        "topic": "meeting_followup",
+        "summary": "Follow-up after scheduled meeting to check on next steps."
+      },
+      {
+        "date": "2026-04-13",
+        "channel": "whatsapp",
+        "topic": "general_checkin",
+        "summary": "Casual check-in, no new pain point raised."
+      }
+    ],
+    "suggested_greeting_hint": "Reference biryani recommendations in Hyderabad and their business (Titan Fabricators) to personalize the greeting."
+  },
+  {
+    "customer_id": "CUST036",
+    "phone_number": "+91 98818 17414",
+    "business_name": "Meadowbrook Farms",
+    "contact_person": "Jyoti Bose",
+    "relationship_stage": "meeting_scheduled",
+    "last_interaction_date": "2026-06-11",
+    "total_interactions": 2,
+    "personal_notes": {
+      "location": "Kochi",
+      "small_talk_topic": "the backwaters tourist season",
+      "preferred_tone": "friendly-professional",
+      "preferred_language": "English + Hindi mix"
+    },
+    "pain_points_raised": [
+      {
+        "date": "2026-06-11",
+        "category": "Operations & Process Efficiency",
+        "summary": "Manual inventory tracking causing overstock/stockouts",
+        "status": "qualified_awaiting_meeting"
+      }
+    ],
+    "conversation_history": [
+      {
+        "date": "2026-05-13",
+        "channel": "whatsapp",
+        "topic": "intro_greeting",
+        "summary": "First contact via QR scan. Customer shared name and business name (Meadowbrook Farms)."
+      },
+      {
+        "date": "2026-05-21",
+        "channel": "whatsapp",
+        "topic": "pain_point_discussion",
+        "summary": "Customer described a pain point related to operations & process efficiency."
+      }
+    ],
+    "suggested_greeting_hint": "Reference the backwaters tourist season in Kochi and their business (Meadowbrook Farms) to personalize the greeting."
+  },
+  {
+    "customer_id": "CUST042",
+    "phone_number": "+91 99156 40410",
+    "business_name": "Redwood Legal Associates",
+    "contact_person": "Rahul Patel",
+    "relationship_stage": "engaged_prospect",
+    "last_interaction_date": "2026-06-19",
+    "total_interactions": 4,
+    "personal_notes": {
+      "location": "Coimbatore",
+      "small_talk_topic": "textile trade fair season",
+      "preferred_tone": "formal",
+      "preferred_language": "English"
+    },
+    "pain_points_raised": [
+      {
+        "date": "2026-06-19",
+        "category": "Customer Support & Service",
+        "summary": "Support tickets take too long to triage and route",
+        "status": "qualified_awaiting_meeting"
+      }
+    ],
+    "conversation_history": [
+      {
+        "date": "2026-04-05",
+        "channel": "whatsapp",
+        "topic": "intro_greeting",
+        "summary": "First contact via QR scan. Customer shared name and business name (Redwood Legal Associates)."
+      },
+      {
+        "date": "2026-04-17",
+        "channel": "whatsapp",
+        "topic": "pain_point_discussion",
+        "summary": "Customer described a pain point related to operations & process efficiency."
+      },
+      {
+        "date": "2026-04-27",
+        "channel": "whatsapp",
+        "topic": "meeting_scheduling",
+        "summary": "Discussed availability for a 30-min AI solutions catchup; time proposed."
+      },
+      {
+        "date": "2026-06-10",
+        "channel": "whatsapp",
+        "topic": "meeting_followup",
+        "summary": "Follow-up after scheduled meeting to check on next steps."
+      }
+    ],
+    "suggested_greeting_hint": "Reference textile trade fair season in Coimbatore and their business (Redwood Legal Associates) to personalize the greeting."
+  }
+]
