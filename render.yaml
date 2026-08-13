@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: whatsapp-agent-backend
+    runtime: python
+    rootDir: python-langchain-supabase
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.1-flash-lite
+      - key: WHATSAPP_PROVIDER
+        value: console
+      - key: CALENDAR_PROVIDER
+        value: stub
+      - key: FRONTEND_ORIGIN
+        sync: false
