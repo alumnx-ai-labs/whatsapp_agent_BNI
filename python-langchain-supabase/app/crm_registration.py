@@ -45,9 +45,18 @@ def register_new_customer(phone: str, name: str, business_name: str) -> dict:
 def upsert_customer_metadata(payload: dict) -> dict:
     """Used by the POST /customers endpoint (React frontend business-metadata
     upload). Upserts on normalized_phone so re-submitting the same business's
-    metadata updates the existing record rather than creating a duplicate."""
+    metadata updates the existing record rather than creating a duplicate.
+
+    Bug fixed: previously generated a fresh customer_id on every call (since
+    the incoming payload never includes one), which meant the upsert's
+    ON CONFLICT DO UPDATE overwrote the existing row's customer_id (the
+    primary key) on every resubmission instead of updating it in place —
+    same row, but its ID kept changing. Now we look up the existing record
+    first and reuse its customer_id; only genuinely new customers get a
+    freshly generated one."""
     normalized = normalize_phone(payload["phone_number"])
+    existing = find_customer_by_phone(payload["phone_number"])
     row = {**payload, "normalized_phone": normalized}
-    row.setdefault("customer_id", f"NEW_{int(time.time() * 1000)}")
+    row["customer_id"] = existing["customer_id"] if existing else f"NEW_{int(time.time() * 1000)}"
     resp = get_client().table("customers").upsert(row, on_conflict="normalized_phone").execute()
     return resp.data[0]
