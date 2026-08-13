@@ -8,6 +8,7 @@ import {
   sanitizePhoneDigits,
   validateBeforeSubmit,
 } from "./formValidation.js";
+import { buildPayloadFromCsvRow, parseCsvToRows, validateCsvRow } from "./csvUpload.js";
 
 const SECTORS = [
   "Retail",
@@ -31,6 +32,8 @@ const EMPTY_FORM = {
 };
 
 export default function App() {
+  const [mode, setMode] = useState("single"); // "single" | "bulk"
+
   const [form, setForm] = useState(EMPTY_FORM);
   const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY_CODE);
   const [phoneLocalDigits, setPhoneLocalDigits] = useState("");
@@ -100,7 +103,30 @@ export default function App() {
           creating a duplicate.
         </p>
 
-        {status === "success" ? (
+        <div style={styles.modeToggle} role="tablist" aria-label="Upload mode">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "single"}
+            style={{ ...styles.modeButton, ...(mode === "single" ? styles.modeButtonActive : {}) }}
+            onClick={() => setMode("single")}
+          >
+            Single entry
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === "bulk"}
+            style={{ ...styles.modeButton, ...(mode === "bulk" ? styles.modeButtonActive : {}) }}
+            onClick={() => setMode("bulk")}
+          >
+            Bulk upload (CSV)
+          </button>
+        </div>
+
+        {mode === "bulk" ? (
+          <CsvBulkUpload />
+        ) : status === "success" ? (
           <div style={styles.successBox}>
             <p style={styles.successText}>
               Saved <strong>{savedCustomer?.business_name}</strong> ({savedCustomer?.customer_id}).
@@ -196,6 +222,181 @@ function Field({ label, required, children }) {
       {children}
     </label>
   );
+}
+
+/** Bulk CSV upload: parses the file client-side and submits each row through
+ * the exact same POST /customers endpoint as the single-entry form — no
+ * backend changes. Each row gets its own Idempotency-Key, so re-uploading
+ * the same file is safe (rows upsert on phone number, same as single entry). */
+function CsvBulkUpload() {
+  const [fileName, setFileName] = useState("");
+  const [rows, setRows] = useState(null); // parsed rows awaiting upload
+  const [parseError, setParseError] = useState("");
+  const [results, setResults] = useState(null); // per-row outcome, after upload
+  const [processing, setProcessing] = useState(false);
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
+  const fileInputRef = useRef(null);
+
+  function resetForNewFile() {
+    setRows(null);
+    setResults(null);
+    setParseError("");
+    setProgress({ done: 0, total: 0 });
+  }
+
+  async function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    resetForNewFile();
+    if (!file) {
+      setFileName("");
+      return;
+    }
+    setFileName(file.name);
+
+    try {
+      const text = await file.text();
+      const parsed = parseCsvToRows(text);
+      if (parsed.length === 0) {
+        setParseError("No data rows found in the file.");
+        return;
+      }
+      setRows(parsed);
+    } catch (err) {
+      setParseError(err.message || "Could not parse this file.");
+    }
+  }
+
+  async function handleUploadAll() {
+    if (!rows || rows.length === 0) return;
+    setProcessing(true);
+    setProgress({ done: 0, total: rows.length });
+
+    const outcomes = [];
+    for (const { lineNumber, record } of rows) {
+      const label = record.business_name || `(row ${lineNumber})`;
+      const rowError = validateCsvRow(record);
+      if (rowError) {
+        outcomes.push({ lineNumber, label, status: "error", message: rowError });
+        setProgress((p) => ({ ...p, done: p.done + 1 }));
+        continue;
+      }
+
+      try {
+        const payload = buildPayloadFromCsvRow(record);
+        // Fresh idempotency key per ROW (each row is a distinct logical
+        // submission) — but stable across a re-upload of the identical file,
+        // since it's derived from the row content, so retrying the whole
+        // file after a partial failure doesn't reprocess already-saved rows
+        // with different in-flight state.
+        const key = await stableRowIdempotencyKey(payload);
+        const result = await submitBusinessMetadata(payload, key);
+        outcomes.push({ lineNumber, label, status: "success", customerId: result.customer_id });
+      } catch (err) {
+        outcomes.push({ lineNumber, label, status: "error", message: err.message || "Upload failed." });
+      }
+      setProgress((p) => ({ ...p, done: p.done + 1 }));
+    }
+
+    setResults(outcomes);
+    setProcessing(false);
+  }
+
+  function handleReset() {
+    resetForNewFile();
+    setFileName("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  const successCount = results?.filter((r) => r.status === "success").length ?? 0;
+  const errorCount = results?.filter((r) => r.status === "error").length ?? 0;
+
+  return (
+    <div style={styles.bulkContainer}>
+      <p style={styles.bulkHelpText}>
+        CSV columns: <code style={styles.code}>business_name</code>, <code style={styles.code}>phone_number</code>{" "}
+        (required), plus optional <code style={styles.code}>contact_person</code>,{" "}
+        <code style={styles.code}>address</code>, <code style={styles.code}>sector</code>,{" "}
+        <code style={styles.code}>business_description</code>.{" "}
+        <a href="/sample-customers.csv" download style={styles.link}>
+          Download a sample CSV
+        </a>
+        .
+      </p>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".csv,text/csv"
+        onChange={handleFileChange}
+        disabled={processing}
+        style={styles.fileInput}
+      />
+
+      {parseError && <p style={styles.errorText}>{parseError}</p>}
+
+      {rows && !results && (
+        <div style={styles.bulkPreview}>
+          <p style={styles.bulkPreviewText}>
+            {fileName}: <strong>{rows.length}</strong> row{rows.length === 1 ? "" : "s"} ready to upload.
+          </p>
+          <button type="button" style={styles.primaryButton} onClick={handleUploadAll} disabled={processing}>
+            {processing ? `Uploading ${progress.done}/${progress.total}…` : `Upload and save all ${rows.length}`}
+          </button>
+        </div>
+      )}
+
+      {results && (
+        <div style={styles.bulkResults}>
+          <p style={styles.bulkSummary}>
+            <span style={styles.successText}>{successCount} saved</span>
+            {errorCount > 0 && <span style={styles.errorText}> · {errorCount} failed</span>}
+          </p>
+          <div style={styles.resultsTableWrap}>
+            <table style={styles.resultsTable}>
+              <thead>
+                <tr>
+                  <th style={styles.resultsTh}>Row</th>
+                  <th style={styles.resultsTh}>Business</th>
+                  <th style={styles.resultsTh}>Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.map((r) => (
+                  <tr key={r.lineNumber}>
+                    <td style={styles.resultsTd}>{r.lineNumber}</td>
+                    <td style={styles.resultsTd}>{r.label}</td>
+                    <td style={styles.resultsTd}>
+                      {r.status === "success" ? (
+                        <span style={styles.successText}>✓ Saved ({r.customerId})</span>
+                      ) : (
+                        <span style={styles.errorText}>✗ {r.message}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <button type="button" style={styles.secondaryButton} onClick={handleReset}>
+            Upload another file
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Derives a stable (non-random) idempotency key from a row's own content,
+ * so re-uploading the exact same CSV — e.g. after fixing a typo in one row —
+ * replays cleanly for rows that already succeeded instead of minting a new
+ * key that would look like a brand-new submission. */
+async function stableRowIdempotencyKey(payload) {
+  const raw = `${payload.phone_number}|${payload.business_name}`;
+  const bytes = new TextEncoder().encode(raw);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 function PhoneField({ countryCode, onCountryCodeChange, localDigits, onLocalDigitsChange, disabled }) {
@@ -314,6 +515,20 @@ const styles = {
   },
   title: { fontSize: 22, marginBottom: 8 },
   subtitle: { fontSize: 14, color: "#555", marginBottom: 24, lineHeight: 1.5 },
+  modeToggle: { display: "flex", gap: 4, marginBottom: 20, background: "#f0f1f4", borderRadius: 8, padding: 4 },
+  modeButton: {
+    flex: 1,
+    padding: "8px 12px",
+    fontSize: 13,
+    fontWeight: 600,
+    fontFamily: "inherit",
+    border: "none",
+    borderRadius: 6,
+    background: "transparent",
+    color: "#555",
+    cursor: "pointer",
+  },
+  modeButtonActive: { background: "#fff", color: "#2f6fed", boxShadow: "0 1px 2px rgba(0,0,0,0.08)" },
   form: { display: "flex", flexDirection: "column", gap: 16 },
   fieldLabel: { display: "flex", flexDirection: "column", gap: 6, fontSize: 13, fontWeight: 600, color: "#333" },
   input: fieldBase,
@@ -399,4 +614,24 @@ const styles = {
   successBox: { display: "flex", flexDirection: "column", gap: 12 },
   successText: { fontSize: 14, color: "#1a7f37" },
   errorText: { fontSize: 13, color: "#c0342c" },
+  bulkContainer: { display: "flex", flexDirection: "column", gap: 12 },
+  bulkHelpText: { fontSize: 13, color: "#555", lineHeight: 1.6, margin: 0 },
+  code: { background: "#f0f1f4", padding: "2px 5px", borderRadius: 4, fontSize: 12 },
+  link: { color: "#2f6fed" },
+  fileInput: { fontSize: 13, fontFamily: "inherit" },
+  bulkPreview: { display: "flex", flexDirection: "column", gap: 10 },
+  bulkPreviewText: { fontSize: 13, color: "#333", margin: 0 },
+  bulkResults: { display: "flex", flexDirection: "column", gap: 10 },
+  bulkSummary: { fontSize: 14, margin: 0 },
+  resultsTableWrap: { maxHeight: 260, overflowY: "auto", border: "1px solid #e3e5e9", borderRadius: 8 },
+  resultsTable: { width: "100%", borderCollapse: "collapse", fontSize: 12.5 },
+  resultsTh: {
+    textAlign: "left",
+    padding: "8px 10px",
+    background: "#f7f8fa",
+    borderBottom: "1px solid #e3e5e9",
+    position: "sticky",
+    top: 0,
+  },
+  resultsTd: { padding: "8px 10px", borderBottom: "1px solid #f0f1f4" },
 };
