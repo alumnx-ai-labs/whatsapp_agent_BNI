@@ -18,9 +18,13 @@ from pydantic import BaseModel
 
 load_dotenv()
 
-from app import crm_registration, idempotency  # noqa: E402
+from app import crm_registration, idempotency, session_store  # noqa: E402
 from app.flow import handle_message  # noqa: E402
 from app.whatsapp_provider import get_provider  # noqa: E402
+
+# The literal phrase the QR code pre-fills into WhatsApp ("Hello Oscar")
+# to start a brand-new pain-point conversation. Case-insensitive, trimmed.
+PAIN_POINT_TRIGGER_PHRASE = "hello oscar"
 
 app = FastAPI(title="WhatsApp Pain-Point Discovery Bot")
 
@@ -78,6 +82,16 @@ class SyncWebhookIn(BaseModel):
 
 @app.post("/webhook-sync")
 async def inbound_webhook_sync(payload: SyncWebhookIn):
+    # This WhatsApp number is shared with other bots (e.g. the alumni
+    # job-search bot) behind the same relay. Only claim a message as ours
+    # if it's the QR code's trigger phrase (a brand-new pain-point
+    # conversation) or this phone already has one in progress — otherwise
+    # tell the caller to fall through to its own (e.g. alumni) logic.
+    trimmed_text = (payload.text or "").strip().lower()
+    is_ours = trimmed_text == PAIN_POINT_TRIGGER_PHRASE or session_store.has_active_session(payload.phone)
+    if not is_ours:
+        return {"handled": False}
+
     # Same idempotency-key cache already used by POST /customers — reused
     # here keyed on message_id, so a retried relay call (e.g. the caller
     # timed out waiting and tries again) replays the same reply instead of
@@ -93,7 +107,7 @@ async def inbound_webhook_sync(payload: SyncWebhookIn):
         print(f"Error handling inbound sync message: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
-    result = {"reply": reply_text or ""}
+    result = {"handled": True, "reply": reply_text or ""}
     idempotency.store_cached_response(payload.message_id, result)
     return result
 

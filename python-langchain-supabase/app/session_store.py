@@ -89,3 +89,23 @@ def save_session(session: Session) -> None:
 
 def set_state(session: Session, state: State) -> None:
     session.state = state
+
+
+def has_active_session(phone: str) -> bool:
+    """True if this phone already has a pain-point-bot conversation in
+    progress. Deliberately does NOT call get_session() — that upserts a
+    fresh row for any phone it's asked about, which would wrongly mark
+    every phone that's ever been checked (e.g. unrelated alumni traffic
+    sharing this WhatsApp number) as "ours" from then on. This is a plain
+    read with no side effect."""
+    resp = (
+        get_client()
+        .table("conversation_sessions")
+        .select("state")
+        .eq("phone_number", phone)
+        .limit(1)
+        .execute()
+    )
+    if not resp.data:
+        return False
+    return resp.data[0]["state"] != State.DONE.value
