@@ -92,6 +92,14 @@ async def inbound_webhook_sync(payload: SyncWebhookIn):
     if not is_ours:
         return {"handled": False}
 
+    # TEMPORARY: end-to-end wiring smoke test. Once the Node relay is
+    # confirmed reaching this endpoint over real WhatsApp/SkaleBot, unset
+    # HELLO_WORLD_TEST_MODE (or delete this block) to restore the real flow.
+    # Still gated by is_ours above, so unrelated (e.g. alumni) traffic on
+    # this shared number is never affected either way.
+    if os.environ.get("HELLO_WORLD_TEST_MODE", "").lower() == "true":
+        return {"handled": True, "reply": "Hello World"}
+
     # Same idempotency-key cache already used by POST /customers — reused
     # here keyed on message_id, so a retried relay call (e.g. the caller
     # timed out waiting and tries again) replays the same reply instead of
