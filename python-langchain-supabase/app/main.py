@@ -1,6 +1,13 @@
-"""main.py — FastAPI app. Two entrypoints:
-  POST /webhook    inbound WhatsApp messages (idempotent — see idempotency.py)
-  POST /customers  business metadata upload from the React frontend (idempotent)
+"""main.py — FastAPI app. Three entrypoints:
+  POST /webhook       inbound WhatsApp messages, fire-and-forget style
+                       (Twilio/Meta/console — reply sent via a separate
+                       outbound API call, see whatsapp_provider.py)
+  POST /webhook-sync  inbound WhatsApp messages, synchronous request/response
+                       style (for relays — e.g. the Alumnx Node backend's
+                       SkaleBot "AI agent" webhook — that expect the reply
+                       text back in THIS response, not a separate send call)
+  POST /customers     business metadata upload from the React frontend
+                       (idempotent)
 """
 import os
 
@@ -59,6 +66,36 @@ async def inbound_webhook(request: Request):
         return Response(status_code=500)
 
     return Response(status_code=200)
+
+
+# ── Synchronous webhook (for relays, e.g. Alumnx's Node backend) ─
+
+class SyncWebhookIn(BaseModel):
+    phone: str
+    text: str
+    message_id: str | None = None
+
+
+@app.post("/webhook-sync")
+async def inbound_webhook_sync(payload: SyncWebhookIn):
+    # Same idempotency-key cache already used by POST /customers — reused
+    # here keyed on message_id, so a retried relay call (e.g. the caller
+    # timed out waiting and tries again) replays the same reply instead of
+    # re-running the flow (which could otherwise double-advance state or
+    # double-book a meeting).
+    cached = idempotency.get_cached_response(payload.message_id)
+    if cached is not None:
+        return cached
+
+    try:
+        reply_text = await handle_message(payload.phone, payload.text)
+    except Exception as e:  # noqa: BLE001
+        print(f"Error handling inbound sync message: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+    result = {"reply": reply_text or ""}
+    idempotency.store_cached_response(payload.message_id, result)
+    return result
 
 
 # ── Business metadata upload (React frontend) ───────────────────
