@@ -151,3 +151,20 @@ async def upsert_customer_metadata(payload: CustomerMetadataIn, request: Request
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+# ── TEMPORARY: wiring diagnostic ─────────────────────────────────
+# Records that *something* called this, regardless of payload shape.
+# Used to confirm whether the Node relay's pain-point check is even
+# being reached at all, without needing log access to that service.
+# Safe to delete once the SkaleBot wiring is confirmed working.
+
+@app.post("/debug-ping")
+async def debug_ping(request: Request):
+    try:
+        body = await request.json()
+    except Exception:  # noqa: BLE001
+        body = {"raw": (await request.body()).decode("utf-8", errors="replace")}
+    from app.db import get_client
+    get_client().table("debug_pings").insert({"source": "node-relay", "payload": body}).execute()
+    return {}
