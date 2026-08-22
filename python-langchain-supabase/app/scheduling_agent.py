@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 from app.agent import run_tool_call
 
 _structured_model = None
+_location_model = None
 
 
 class AvailabilityParse(BaseModel):
@@ -20,6 +21,19 @@ class AvailabilityParse(BaseModel):
     iso: Optional[str] = Field(default=None, description="Proposed meeting start as ISO 8601")
     needs_clarification: bool = Field(description="True if the message was too vague to act on")
     human_readable: Optional[str] = Field(default=None, description="Friendly rendering of the proposed time")
+
+
+class LocationParse(BaseModel):
+    location: Optional[str] = Field(
+        default=None,
+        description="A short, clean description of the meeting location, normalized from the "
+        "user's reply (e.g. 'can I meet at your office?' -> 'our office', 'maybe Taj Hotel "
+        "works' -> 'Taj Hotel', 'let's just do a call' -> 'phone call').",
+    )
+    needs_clarification: bool = Field(
+        description="True if the reply doesn't specify or imply any location at all "
+        "(e.g. 'not sure', 'what do you suggest?')."
+    )
 
 
 def _get_structured_model():
@@ -32,6 +46,18 @@ def _get_structured_model():
         )
         _structured_model = model.with_structured_output(AvailabilityParse)
     return _structured_model
+
+
+def _get_location_model():
+    global _location_model
+    if _location_model is None:
+        model = ChatGoogleGenerativeAI(
+            model=os.environ.get("GEMINI_MODEL", "gemini-3.1-flash-lite"),
+            google_api_key=os.environ.get("GOOGLE_API_KEY"),
+            temperature=0,
+        )
+        _location_model = model.with_structured_output(LocationParse)
+    return _location_model
 
 
 def parse_availability(user_text: str, now_iso: str | None = None) -> dict:
@@ -47,6 +73,18 @@ The meeting is a 30-minute call. If the message is too vague to produce a specif
     return result.model_dump()
 
 
+def parse_location(user_text: str) -> dict:
+    system = """You extract a clean, short meeting location from a WhatsApp reply to "where would \
+you like to meet?" — normalize conversational phrasing (a question, a suggestion, filler words) into \
+a plain location description rather than echoing the raw text back. If the reply doesn't specify or \
+imply a location at all, set needs_clarification to true instead of guessing."""
+
+    result: LocationParse = _get_location_model().invoke(
+        [SystemMessage(content=system), HumanMessage(content=user_text)]
+    )
+    return result.model_dump()
+
+
 def confirm_and_book(customer: dict, iso: str, human_readable: str | None, location: str | None = None) -> dict:
     instruction = (
         f"Book a calendar meeting for business '{customer['business_name']}', "
@@ -55,10 +93,7 @@ def confirm_and_book(customer: dict, iso: str, human_readable: str | None, locat
         + (f", meeting location: {location}." if location else ".")
     )
     event = run_tool_call(instruction)
+
     location_line = f"\nLocation: {location}" if location else ""
-    confirmation_text = (
-        f"Meeting confirmed: {human_readable or iso}{location_line}\n"
-        f"{event['title']}\n"
-        f"View details and RSVP: {event['rsvp_link']}"
-    )
+    confirmation_text = f"Meeting confirmed: {human_readable or iso}{location_line}\n{event['title']}"
     return {"confirmation_text": confirmation_text, "event": event}

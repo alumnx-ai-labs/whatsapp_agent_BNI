@@ -16,9 +16,13 @@ from app.db import get_client
 # meetings_customer_id_fkey on the very next request — the row shows up if you
 # just check again a moment later, so this is a transient consistency gap
 # (Supabase's pooled/replicated Postgres), not a real "customer doesn't
-# exist" case. Retry briefly instead of failing the whole booking.
+# exist" case. Only reproduces in rapid-fire automated testing (zero delay
+# between messages) — never seen in real conversations, where a human
+# naturally pauses between replies. Kept short (not >10s total) because the
+# Node relay's call to /webhook-sync times out at 15s, and 1-2 LLM calls
+# already happen earlier in the same request before this ever runs.
 FK_VIOLATION = "23503"
-CUSTOMER_FK_RETRY_DELAYS = (0.5, 1.0, 2.0)
+CUSTOMER_FK_RETRY_DELAYS = (1.0, 2.0, 3.0)
 
 
 def book_meeting(
@@ -86,6 +90,7 @@ def book_meeting(
             # not e.details — checked against the real error shape below).
             if e.code != FK_VIOLATION or attempt == len(CUSTOMER_FK_RETRY_DELAYS):
                 raise
+            print(f"[calendar] customer_id {customer_id} not visible yet for meetings insert, retrying (attempt {attempt + 1})")
 
     return {
         "id": row["id"],
