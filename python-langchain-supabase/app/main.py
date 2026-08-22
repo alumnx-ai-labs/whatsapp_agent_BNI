@@ -147,6 +147,29 @@ async def upsert_customer_metadata(payload: CustomerMetadataIn, request: Request
     idempotency.store_cached_response(idempotency_key, customer)
     return customer
 
+# ── Bookings (React frontend) ────────────────────────────────────
+
+@app.get("/bookings")
+async def get_confirmed_bookings(status: str = "confirmed"):
+    """
+    Fetches bookings from Supabase filtered by status (default: 'confirmed').
+    """
+    try:
+        from app.db import get_client
+        supabase = get_client()
+        
+        # Queries the 'bookings' table for confirmed records ordered by newest first
+        response = (
+            supabase.table("meetings")
+            .select("*")
+            .eq("status", status)
+            .order("created_at", desc=True)
+            .execute()
+        )
+        return response.data
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=f"Database fetch failed: {str(e)}")
+
 
 @app.get("/health")
 async def health():
