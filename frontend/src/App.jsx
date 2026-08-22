@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { newIdempotencyKey, submitBusinessMetadata } from "./api.js";
+import BookingsList from "./BookingsList.jsx";
 import {
   buildSubmissionPayload,
   COUNTRY_CODES,
@@ -32,6 +33,7 @@ const EMPTY_FORM = {
 };
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState("upload"); // "upload" | "bookings"
   const [mode, setMode] = useState("single"); // "single" | "bulk"
 
   const [form, setForm] = useState(EMPTY_FORM);
@@ -95,120 +97,147 @@ export default function App() {
 
   return (
     <div style={styles.page}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>Upload Business Metadata</h1>
-        <p style={styles.subtitle}>
-          This feeds the WhatsApp bot information to identify returning customers and personalize
-          greetings. Submitting the same phone number again updates the existing record instead of
-          creating a duplicate.
-        </p>
-
-        <div style={styles.modeToggle} role="tablist" aria-label="Upload mode">
+      <div style={{ ...styles.card, ...(activeTab === "bookings" ? styles.cardWide : {}) }}>
+        <div style={styles.tabContainer} role="tablist" aria-label="Main navigation">
           <button
             type="button"
             role="tab"
-            aria-selected={mode === "single"}
-            style={{ ...styles.modeButton, ...(mode === "single" ? styles.modeButtonActive : {}) }}
-            onClick={() => setMode("single")}
+            aria-selected={activeTab === "upload"}
+            style={{ ...styles.tabBtn, ...(activeTab === "upload" ? styles.activeTabBtn : {}) }}
+            onClick={() => setActiveTab("upload")}
           >
-            Single entry
+            Upload Metadata
           </button>
           <button
             type="button"
             role="tab"
-            aria-selected={mode === "bulk"}
-            style={{ ...styles.modeButton, ...(mode === "bulk" ? styles.modeButtonActive : {}) }}
-            onClick={() => setMode("bulk")}
+            aria-selected={activeTab === "bookings"}
+            style={{ ...styles.tabBtn, ...(activeTab === "bookings" ? styles.activeTabBtn : {}) }}
+            onClick={() => setActiveTab("bookings")}
           >
-            Bulk upload (CSV)
+            Confirmed Bookings
           </button>
         </div>
 
-        {mode === "bulk" ? (
-          <CsvBulkUpload />
-        ) : status === "success" ? (
-          <div style={styles.successBox}>
-            <p style={styles.successText}>
-              Saved <strong>{savedCustomer?.business_name}</strong> ({savedCustomer?.customer_id}).
+        {activeTab === "upload" && (
+          <div>
+            <h1 style={styles.title}>Upload Business Metadata</h1>
+            <p style={styles.subtitle}>
+              This feeds the WhatsApp bot information to identify returning customers and personalize
+              greetings. Submitting the same phone number again updates the existing record instead of
+              creating a duplicate.
             </p>
-            <button style={styles.secondaryButton} onClick={handleStartNew}>
-              Add another business
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} style={styles.form}>
-            <Field label="Business name" required>
-              <input
-                style={styles.input}
-                required
-                value={form.business_name}
-                onChange={(e) => updateField("business_name", e.target.value)}
-                disabled={disabled}
-              />
-            </Field>
 
-            <Field label="Phone number (WhatsApp)" required>
-              <PhoneField
-                countryCode={countryCode}
-                onCountryCodeChange={setCountryCode}
-                localDigits={phoneLocalDigits}
-                onLocalDigitsChange={setPhoneLocalDigits}
-                disabled={disabled}
-              />
-            </Field>
-
-            <Field label="Contact person">
-              <input
-                style={styles.input}
-                value={form.contact_person}
-                onChange={(e) => handleContactPersonChange(e.target.value)}
-                disabled={disabled}
-                placeholder="Full name"
-              />
-            </Field>
-
-            <Field label="Address">
-              <input
-                style={styles.input}
-                value={form.address}
-                onChange={(e) => updateField("address", e.target.value)}
-                disabled={disabled}
-              />
-            </Field>
-
-            <Field label="Sector">
-              <select
-                style={styles.input}
-                value={form.sector}
-                onChange={(e) => updateField("sector", e.target.value)}
-                disabled={disabled}
+            <div style={styles.modeToggle} role="tablist" aria-label="Upload mode">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mode === "single"}
+                style={{ ...styles.modeButton, ...(mode === "single" ? styles.modeButtonActive : {}) }}
+                onClick={() => setMode("single")}
               >
-                <option value="">Select a sector…</option>
-                {SECTORS.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </Field>
+                Single entry
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={mode === "bulk"}
+                style={{ ...styles.modeButton, ...(mode === "bulk" ? styles.modeButtonActive : {}) }}
+                onClick={() => setMode("bulk")}
+              >
+                Bulk upload (CSV)
+              </button>
+            </div>
 
-            <Field label="Business description">
-              <textarea
-                style={{ ...styles.input, height: 100, resize: "vertical" }}
-                placeholder="Founded year, owner, core products/services, team size, notable context…"
-                value={form.business_description}
-                onChange={(e) => updateField("business_description", e.target.value)}
-                disabled={disabled}
-              />
-            </Field>
+            {mode === "bulk" ? (
+              <CsvBulkUpload />
+            ) : status === "success" ? (
+              <div style={styles.successBox}>
+                <p style={styles.successText}>
+                  Saved <strong>{savedCustomer?.business_name}</strong> ({savedCustomer?.customer_id}).
+                </p>
+                <button style={styles.secondaryButton} onClick={handleStartNew}>
+                  Add another business
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} style={styles.form}>
+                <Field label="Business name" required>
+                  <input
+                    style={styles.input}
+                    required
+                    value={form.business_name}
+                    onChange={(e) => updateField("business_name", e.target.value)}
+                    disabled={disabled}
+                  />
+                </Field>
 
-            {status === "error" && <p style={styles.errorText}>{errorMessage}</p>}
+                <Field label="Phone number (WhatsApp)" required>
+                  <PhoneField
+                    countryCode={countryCode}
+                    onCountryCodeChange={setCountryCode}
+                    localDigits={phoneLocalDigits}
+                    onLocalDigitsChange={setPhoneLocalDigits}
+                    disabled={disabled}
+                  />
+                </Field>
 
-            <button type="submit" style={styles.primaryButton} disabled={disabled}>
-              {status === "submitting" ? "Saving…" : "Save business"}
-            </button>
-          </form>
+                <Field label="Contact person">
+                  <input
+                    style={styles.input}
+                    value={form.contact_person}
+                    onChange={(e) => handleContactPersonChange(e.target.value)}
+                    disabled={disabled}
+                    placeholder="Full name"
+                  />
+                </Field>
+
+                <Field label="Address">
+                  <input
+                    style={styles.input}
+                    value={form.address}
+                    onChange={(e) => updateField("address", e.target.value)}
+                    disabled={disabled}
+                  />
+                </Field>
+
+                <Field label="Sector">
+                  <select
+                    style={styles.input}
+                    value={form.sector}
+                    onChange={(e) => updateField("sector", e.target.value)}
+                    disabled={disabled}
+                  >
+                    <option value="">Select a sector…</option>
+                    {SECTORS.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                <Field label="Business description">
+                  <textarea
+                    style={{ ...styles.input, height: 100, resize: "vertical" }}
+                    placeholder="Founded year, owner, core products/services, team size, notable context…"
+                    value={form.business_description}
+                    onChange={(e) => updateField("business_description", e.target.value)}
+                    disabled={disabled}
+                  />
+                </Field>
+
+                {status === "error" && <p style={styles.errorText}>{errorMessage}</p>}
+
+                <button type="submit" style={styles.primaryButton} disabled={disabled}>
+                  {status === "submitting" ? "Saving…" : "Save business"}
+                </button>
+              </form>
+            )}
+          </div>
         )}
+
+        {activeTab === "bookings" && <BookingsList />}
       </div>
     </div>
   );
@@ -495,6 +524,30 @@ const fieldBase = {
   fontFamily: "inherit",
 };
 
+const toggleTrack = {
+  display: "flex",
+  marginBottom: 20,
+  background: "#f0f1f4",
+  borderRadius: 8,
+  padding: 4,
+};
+
+const toggleBtn = {
+  flex: 1,
+  fontFamily: "inherit",
+  border: "none",
+  borderRadius: 6,
+  background: "transparent",
+  cursor: "pointer",
+};
+
+const toggleBtnActive = {
+  background: "#fff",
+  fontWeight: 600,
+  color: "#2f6fed",
+  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+};
+
 const styles = {
   page: {
     minHeight: "100vh",
@@ -513,22 +566,15 @@ const styles = {
     padding: 32,
     boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
   },
+  cardWide: { maxWidth: 560 },
+  tabContainer: { ...toggleTrack, gap: 8 },
+  tabBtn: { ...toggleBtn, padding: "8px 16px", fontSize: 14, fontWeight: 500, color: "#57606a" },
+  activeTabBtn: toggleBtnActive,
   title: { fontSize: 22, marginBottom: 8 },
   subtitle: { fontSize: 14, color: "#555", marginBottom: 24, lineHeight: 1.5 },
-  modeToggle: { display: "flex", gap: 4, marginBottom: 20, background: "#f0f1f4", borderRadius: 8, padding: 4 },
-  modeButton: {
-    flex: 1,
-    padding: "8px 12px",
-    fontSize: 13,
-    fontWeight: 600,
-    fontFamily: "inherit",
-    border: "none",
-    borderRadius: 6,
-    background: "transparent",
-    color: "#555",
-    cursor: "pointer",
-  },
-  modeButtonActive: { background: "#fff", color: "#2f6fed", boxShadow: "0 1px 2px rgba(0,0,0,0.08)" },
+  modeToggle: { ...toggleTrack, gap: 4 },
+  modeButton: { ...toggleBtn, padding: "8px 12px", fontSize: 13, fontWeight: 600, color: "#555" },
+  modeButtonActive: toggleBtnActive,
   form: { display: "flex", flexDirection: "column", gap: 16 },
   fieldLabel: { display: "flex", flexDirection: "column", gap: 6, fontSize: 13, fontWeight: 600, color: "#333" },
   input: fieldBase,

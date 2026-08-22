@@ -60,3 +60,12 @@ export async function submitBusinessMetadata(payload, idempotencyKey, { retries 
 
   throw lastError;
 }
+export async function fetchConfirmedBookings() {
+  const response = await fetch(`${API_BASE}/bookings?status=confirmed`);
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch confirmed bookings.");
+  }
+
+  return await response.json();
+}
