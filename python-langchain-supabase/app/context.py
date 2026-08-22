@@ -17,10 +17,10 @@ def get_context_by_customer_id(customer_id: str) -> dict | None:
 
 # Manually verified against live Supabase seed data on 2026-08-13: CUST001/CUST002 (context present) and CUST004/CUST006 (no context) all render correctly.
 
-def build_returning_greeting(customer: dict, context: dict | None) -> str:
+def build_returning_greeting(customer: dict, context: dict | None, greeting_word: str = "Hello") -> str:
     name = customer.get("contact_person") or "there"
     if not context:
-        return f"Hello {name}! Good to hear from you again. How's everything going at {customer['business_name']}?"
+        return f"{greeting_word} {name}! Good to hear from you again. How's everything going at {customer['business_name']}?"
 
     notes = context.get("personal_notes") or {}
     topic = notes.get("small_talk_topic")
@@ -29,4 +29,4 @@ def build_returning_greeting(customer: dict, context: dict | None) -> str:
         hook = f"How's {topic} treating you over in {location}?"
     else:
         hook = f"How are things going at {customer['business_name']}?"
-    return f"Hello {name}! {hook}"
+    return f"{greeting_word} {name}! {hook}"

@@ -21,7 +21,7 @@ async def handle_message(phone: str, text: str) -> str:
     trimmed = (text or "").strip()
 
     if session.state == State.START:
-        reply = await _handle_start(session)
+        reply = await _handle_start(session, trimmed)
     elif session.state == State.AWAITING_NAME:
         reply = await _handle_name_capture(session, trimmed)
     elif session.state in (State.ASK_PAIN_POINT, State.AWAITING_ELABORATION):
@@ -32,13 +32,13 @@ async def handle_message(phone: str, text: str) -> str:
         reply = await _handle_availability_reply(session, trimmed)
     else:
         set_state(session, State.START)
-        reply = await _handle_start(session)
+        reply = await _handle_start(session, trimmed)
 
     save_session(session)
     return reply
 
 
-async def _handle_start(session: Session) -> str:
+async def _handle_start(session: Session, text: str = "") -> str:
     result = run_tool_call(f"Look up the customer with WhatsApp phone number {session.phone} in the CRM.")
 
     if not result.get("not_found"):
@@ -46,7 +46,11 @@ async def _handle_start(session: Session) -> str:
         set_state(session, State.ASK_PAIN_POINT)
 
         ctx = run_tool_call(f"Get the prior interaction context for customer_id {result['customer_id']}.")
-        greeting = context.build_returning_greeting(result, None if ctx.get("not_found") else ctx)
+        
+        match = re.search(r"\b(hi|hello|hey)\b", text, re.IGNORECASE)
+        greeting_word = match.group(1).capitalize() if match else "Hello"
+
+        greeting = context.build_returning_greeting(result, None if ctx.get("not_found") else ctx, greeting_word=greeting_word)
         return f"{greeting}\n\nIs there any business pain point you have which we can address using AI? Please share the details."
 
     set_state(session, State.AWAITING_NAME)
