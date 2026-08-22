@@ -1,50 +1,71 @@
 """calendar_data.py — calendar integration. Stubbed by default (CALENDAR_PROVIDER=stub);
-set CALENDAR_PROVIDER=hello_oscar to book against the real Hello Oscar API once
-credentials are available (issue #10 — confirm the appointment by calling Hello
-Oscar). Booking is idempotent: the same (customer, start_iso) pair always
-resolves to the same `meetings` row instead of creating duplicates on a
-retried request.
+set CALENDAR_PROVIDER=hello_oscar to route bookings through the real Hello Oscar
+API (issue #10 — confirm the appointment by calling Hello Oscar). Booking is
+idempotent: the same (customer, start_iso) pair always resolves to the same
+`meetings` row instead of creating duplicates on a retried request.
+
+Hello Oscar's actual contract (per review on PR #16): a single unauthenticated
+chat endpoint, {OSCAR_API_BASE_URL}/chat, that takes a free-text natural-language
+instruction rather than structured event fields. No API key needed — only the
+base URL, which only has to be set in the deployed environment (not required to
+write or test this module).
 """
 import os
-import random
-import string
+from datetime import datetime, timedelta
 
 import httpx
 
 from app.db import get_client
 
-HELLO_OSCAR_TIMEOUT_SECONDS = 10.0
+OSCAR_TIMEOUT_SECONDS = 10.0
+OSCAR_USER_ID = 5  # fixed constant per Hello Oscar's contract — not per-customer
 
 
 class HelloOscarError(RuntimeError):
     """Raised when the Hello Oscar API can't confirm a booking."""
 
 
-def _book_via_hello_oscar(title: str, start_iso: str, duration_minutes: int, attendee_phone: str) -> dict:
-    """Create the meeting in Hello Oscar and return its event id + RSVP link.
+def _format_hour(dt: datetime) -> str:
+    """'17:00' -> '5 pm' (no platform-specific strftime flags, so this works
+    the same on Windows dev machines and Linux servers)."""
+    hour = dt.strftime("%I").lstrip("0") or "12"
+    return f"{hour} {dt.strftime('%p').lower()}"
 
-    Hello Oscar's documented v1 contract: POST /v1/events, bearer-token auth,
-    JSON body, response contains `id` and `rsvp_url`. Configure via
-    HELLO_OSCAR_API_BASE (defaults to the production API) and
-    HELLO_OSCAR_API_KEY (required — raises a clear error if missing rather
-    than failing deep inside httpx).
+
+def _build_oscar_message(title: str, start_iso: str, duration_minutes: int, attendee_name: str, location: str | None = None) -> str:
+    """Build the free-text instruction Hello Oscar expects: day + start/end
+    time, the literal word "Vijender", and who's attending are always
+    included. Location is added only if we have one — this bot doesn't
+    currently ask the customer for a meeting location, so for now that part
+    of the sentence is simply left out rather than guessed or faked.
     """
-    base_url = os.environ.get("HELLO_OSCAR_API_BASE", "https://api.hellooscar.com")
-    api_key = os.environ.get("HELLO_OSCAR_API_KEY")
-    if not api_key:
-        raise HelloOscarError("HELLO_OSCAR_API_KEY is not set — required when CALENDAR_PROVIDER=hello_oscar")
+    start_dt = datetime.fromisoformat(start_iso)
+    end_dt = start_dt + timedelta(minutes=duration_minutes)
+    day_name = start_dt.strftime("%A")
+    where = f" at {location}" if location else ""
+    return (
+        f"Schedule a meeting with Vijender on {day_name} "
+        f"{_format_hour(start_dt)} to {_format_hour(end_dt)}{where}. "
+        f"{attendee_name} is the one attending, regarding: {title}."
+    )
+
+
+def _book_via_hello_oscar(message: str) -> dict:
+    """POST the natural-language scheduling request to Hello Oscar's /chat
+    endpoint. No auth header — the API is unauthenticated. Response shape is
+    unverified (no live call has been made yet against the real API), so this
+    parses defensively: it doesn't assume any particular schema beyond
+    checking for an `error` key.
+    """
+    base_url = os.environ.get("OSCAR_API_BASE_URL")
+    if not base_url:
+        raise HelloOscarError("OSCAR_API_BASE_URL is not set — required when CALENDAR_PROVIDER=hello_oscar")
 
     try:
-        with httpx.Client(timeout=HELLO_OSCAR_TIMEOUT_SECONDS) as client:
+        with httpx.Client(timeout=OSCAR_TIMEOUT_SECONDS) as client:
             resp = client.post(
-                f"{base_url}/v1/events",
-                headers={"Authorization": f"Bearer {api_key}"},
-                json={
-                    "title": title,
-                    "start_time": start_iso,
-                    "duration_minutes": duration_minutes,
-                    "attendees": [{"phone": attendee_phone}],
-                },
+                f"{base_url}/chat",
+                json={"user_id": OSCAR_USER_ID, "message": message},
             )
             resp.raise_for_status()
             data = resp.json()
@@ -53,10 +74,30 @@ def _book_via_hello_oscar(title: str, start_iso: str, duration_minutes: int, att
         # exception bubble up into the LangChain tool call.
         raise HelloOscarError(f"Hello Oscar booking failed: {exc}") from exc
 
-    return {"event_id": data["id"], "rsvp_link": data["rsvp_url"]}
+    if isinstance(data, dict) and data.get("error"):
+        raise HelloOscarError(f"Hello Oscar returned an error: {data['error']}")
+
+    # Defensive extraction: try the field names that would plausibly hold
+    # Oscar's reply text, but never assume one is present.
+    reply_text = None
+    if isinstance(data, dict):
+        for key in ("response", "reply", "message", "result"):
+            if isinstance(data.get(key), str):
+                reply_text = data[key]
+                break
+
+    return {"raw": data, "reply": reply_text}
 
 
-def book_meeting(title: str, start_iso: str, duration_minutes: int, attendee_phone: str, customer_id: str) -> dict:
+def book_meeting(
+    title: str,
+    start_iso: str,
+    duration_minutes: int,
+    attendee_phone: str,
+    customer_id: str,
+    attendee_name: str | None = None,
+    location: str | None = None,
+) -> dict:
     idempotency_key = f"{customer_id}:{start_iso}"
 
     existing = (
@@ -79,13 +120,23 @@ def book_meeting(title: str, start_iso: str, duration_minutes: int, attendee_pho
 
     provider = os.environ.get("CALENDAR_PROVIDER", "stub")
     if provider == "stub":
+        import random
+        import string
+
         fake_id = "evt_" + "".join(random.choices(string.ascii_lowercase + string.digits, k=8))
         rsvp_link = f"https://calendar.app.google/{fake_id}"
         print(f"[calendar:stub] booking \"{title}\" at {start_iso} for {duration_minutes}min (attendee {attendee_phone})")
     elif provider == "hello_oscar":
-        result = _book_via_hello_oscar(title, start_iso, duration_minutes, attendee_phone)
-        rsvp_link = result["rsvp_link"]
-        print(f"[calendar:hello_oscar] booked \"{title}\" at {start_iso} -> event {result['event_id']}")
+        message = _build_oscar_message(
+            title=title,
+            start_iso=start_iso,
+            duration_minutes=duration_minutes,
+            attendee_name=attendee_name or attendee_phone,
+            location=location,
+        )
+        result = _book_via_hello_oscar(message)
+        rsvp_link = result["reply"] or "Booking request sent to Hello Oscar — awaiting confirmation."
+        print(f"[calendar:hello_oscar] sent \"{message}\" -> {result['raw']}")
     else:
         raise NotImplementedError(f"CALENDAR_PROVIDER={provider} not implemented yet")
 
