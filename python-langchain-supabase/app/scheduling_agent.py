@@ -48,15 +48,24 @@ The meeting is a 30-minute call. If the message is too vague to produce a specif
 
 
 def confirm_and_book(customer: dict, iso: str, human_readable: str | None) -> dict:
+    business_name = customer.get("business_name") or ""
     instruction = (
-        f"Book a calendar meeting for business '{customer['business_name']}', "
+        f"Book a calendar meeting for business '{business_name}', "
         f"phone {customer['phone_number']}, customer_id {customer['customer_id']}, "
         f"starting at {iso}."
     )
     event = run_tool_call(instruction)
+
+    date_time_str = human_readable or iso
+    business_label = f" with {business_name}" if business_name and business_name.lower() != "their business" else ""
+
     confirmation_text = (
-        f"Meeting confirmed: {human_readable or iso}\n"
-        f"{event['title']}\n"
-        f"View details and RSVP: {event['rsvp_link']}"
+        "✅ *Meeting Confirmed!*\n\n"
+        f"📅 *Date & Time:* {date_time_str}\n"
+        f"💼 *Meeting:* Discovery Call{business_label}\n"
+        f"⏳ *Duration:* 30 Minutes\n"
+        f"📍 *Location:* Virtual (Google Meet / WhatsApp Call)\n\n"
+        f"🔗 *RSVP & Calendar Invite:* {event['rsvp_link']}\n\n"
+        "Looking forward to speaking with you!"
     )
     return {"confirmation_text": confirmation_text, "event": event}
