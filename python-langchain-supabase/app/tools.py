@@ -36,18 +36,24 @@ def get_customer_context(customer_id: str) -> dict:
 
 
 @tool
-def book_calendar_meeting(business_name: str, phone: str, customer_id: str, start_iso: str) -> dict:
+def book_calendar_meeting(
+    business_name: str, phone: str, customer_id: str, start_iso: str, location: str | None = None
+) -> dict:
     """Book a 30-minute discovery call on the calendar. start_iso must be a full
-    ISO 8601 datetime (e.g. 2026-08-20T10:00:00+05:30). Idempotent — calling this
-    twice for the same customer_id and start_iso returns the same booked event
-    instead of creating a duplicate meeting. Returns the created event, including
-    an RSVP link to send back to the customer."""
+    ISO 8601 datetime (e.g. 2026-08-20T10:00:00+05:30). location is where the
+    meeting will take place (e.g. an office address, a cafe name, or "phone call"
+    if it's not in person) — optional but should be passed whenever known.
+    Idempotent — calling this twice for the same customer_id and start_iso
+    returns the same booked event instead of creating a duplicate meeting.
+    Returns the created event, including an RSVP link to send back to the
+    customer."""
     return calendar_data.book_meeting(
         title=f"Meeting with {business_name}",
         start_iso=start_iso,
         duration_minutes=30,
         attendee_phone=phone,
         customer_id=customer_id,
+        location=location,
     )
 
 

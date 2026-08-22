@@ -10,7 +10,14 @@ import string
 from app.db import get_client
 
 
-def book_meeting(title: str, start_iso: str, duration_minutes: int, attendee_phone: str, customer_id: str) -> dict:
+def book_meeting(
+    title: str,
+    start_iso: str,
+    duration_minutes: int,
+    attendee_phone: str,
+    customer_id: str,
+    location: str | None = None,
+) -> dict:
     idempotency_key = f"{customer_id}:{start_iso}"
 
     existing = (
@@ -29,6 +36,7 @@ def book_meeting(title: str, start_iso: str, duration_minutes: int, attendee_pho
             "start_iso": row["start_iso"],
             "duration_minutes": duration_minutes,
             "rsvp_link": row["rsvp_link"],
+            "location": row.get("location"),
         }
 
     provider = os.environ.get("CALENDAR_PROVIDER", "stub")
@@ -55,6 +63,7 @@ def book_meeting(title: str, start_iso: str, duration_minutes: int, attendee_pho
                 "title": title,
                 "rsvp_link": rsvp_link,
                 "status": "confirmed",
+                "location": location,
             }
         )
         .execute()
@@ -66,4 +75,5 @@ def book_meeting(title: str, start_iso: str, duration_minutes: int, attendee_pho
         "start_iso": row["start_iso"],
         "duration_minutes": duration_minutes,
         "rsvp_link": row["rsvp_link"],
+        "location": row.get("location"),
     }

@@ -26,6 +26,7 @@ class State(str, Enum):
     AWAITING_ELABORATION = "AWAITING_ELABORATION"
     ASK_MEETING = "ASK_MEETING"
     PROPOSE_TIME = "PROPOSE_TIME"
+    ASK_LOCATION = "ASK_LOCATION"
     CONFIRM_TIME = "CONFIRM_TIME"
     DONE = "DONE"
 
@@ -39,6 +40,8 @@ class Session:
     pending_pain_point: Optional[str] = None
     validated_pain_point: Optional[dict] = None
     proposed_time: Optional[str] = None
+    proposed_time_human: Optional[str] = None
+    proposed_location: Optional[str] = None
 
 
 def get_session(phone: str) -> Session:
@@ -60,6 +63,8 @@ def get_session(phone: str) -> Session:
             pending_pain_point=row.get("pending_pain_point"),
             validated_pain_point=row.get("validated_pain_point"),
             proposed_time=row.get("proposed_time"),
+            proposed_time_human=row.get("proposed_time_human"),
+            proposed_location=row.get("proposed_location"),
         )
 
     # Idempotent create: upsert rather than plain insert, in case two inbound
@@ -82,6 +87,8 @@ def save_session(session: Session) -> None:
             "pending_pain_point": session.pending_pain_point,
             "validated_pain_point": session.validated_pain_point,
             "proposed_time": session.proposed_time,
+            "proposed_time_human": session.proposed_time_human,
+            "proposed_location": session.proposed_location,
         },
         on_conflict="phone_number",
     ).execute()

@@ -47,15 +47,17 @@ The meeting is a 30-minute call. If the message is too vague to produce a specif
     return result.model_dump()
 
 
-def confirm_and_book(customer: dict, iso: str, human_readable: str | None) -> dict:
+def confirm_and_book(customer: dict, iso: str, human_readable: str | None, location: str | None = None) -> dict:
     instruction = (
         f"Book a calendar meeting for business '{customer['business_name']}', "
         f"phone {customer['phone_number']}, customer_id {customer['customer_id']}, "
-        f"starting at {iso}."
+        f"starting at {iso}"
+        + (f", meeting location: {location}." if location else ".")
     )
     event = run_tool_call(instruction)
+    location_line = f"\nLocation: {location}" if location else ""
     confirmation_text = (
-        f"Meeting confirmed: {human_readable or iso}\n"
+        f"Meeting confirmed: {human_readable or iso}{location_line}\n"
         f"{event['title']}\n"
         f"View details and RSVP: {event['rsvp_link']}"
     )

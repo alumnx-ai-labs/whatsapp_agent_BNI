@@ -30,6 +30,8 @@ async def handle_message(phone: str, text: str) -> str:
         reply = await _handle_meeting_willingness(session, trimmed)
     elif session.state == State.PROPOSE_TIME:
         reply = await _handle_availability_reply(session, trimmed)
+    elif session.state == State.ASK_LOCATION:
+        reply = await _handle_location_reply(session, trimmed)
     else:
         set_state(session, State.START)
         reply = await _handle_start(session)
@@ -107,6 +109,20 @@ async def _handle_availability_reply(session: Session, text: str) -> str:
     if not parsed["parsed"] or parsed["needs_clarification"]:
         return 'Could you share a specific day and time (e.g. "Thursday 3pm")? I want to make sure I book the right slot.'
 
-    result = scheduling_agent.confirm_and_book(session.customer, parsed["iso"], parsed.get("human_readable"))
+    session.proposed_time = parsed["iso"]
+    session.proposed_time_human = parsed.get("human_readable")
+    set_state(session, State.ASK_LOCATION)
+    return "Great — and where would you like to meet? (e.g. your office, a cafe, or just a phone/video call)"
+
+
+async def _handle_location_reply(session: Session, text: str) -> str:
+    session.proposed_location = text
+
+    result = scheduling_agent.confirm_and_book(
+        session.customer,
+        session.proposed_time,
+        session.proposed_time_human,
+        location=session.proposed_location,
+    )
     set_state(session, State.DONE)
     return result["confirmation_text"]
