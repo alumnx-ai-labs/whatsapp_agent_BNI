@@ -27,6 +27,8 @@ class State(str, Enum):
     ASK_MEETING = "ASK_MEETING"
     PROPOSE_TIME = "PROPOSE_TIME"
     ASK_LOCATION = "ASK_LOCATION"
+    ASK_LOCATION_CONFIRM = "ASK_LOCATION_CONFIRM"
+    ASK_LOCATION_DETAIL = "ASK_LOCATION_DETAIL"
     CONFIRM_TIME = "CONFIRM_TIME"
     DONE = "DONE"
 
@@ -42,6 +44,16 @@ class Session:
     proposed_time: Optional[str] = None
     proposed_time_human: Optional[str] = None
     proposed_location: Optional[str] = None
+    # A maps link, kept separate from proposed_location — it's only ever shown
+    # in the final user-facing confirmation, never fed into the natural-language
+    # instruction sent to the LLM tool-call (a raw URL embedded there confused
+    # its argument extraction, mangling customer_id in testing).
+    proposed_location_link: Optional[str] = None
+    # Raw text accumulated across "could you be more specific" rounds, so a
+    # date given in one message ("29th aug") and a time given in the next
+    # ("5pm") get parsed together instead of the second message alone
+    # silently overriding/losing the first.
+    pending_availability_text: str = ""
 
 
 def get_session(phone: str) -> Session:
@@ -65,6 +77,8 @@ def get_session(phone: str) -> Session:
             proposed_time=row.get("proposed_time"),
             proposed_time_human=row.get("proposed_time_human"),
             proposed_location=row.get("proposed_location"),
+            proposed_location_link=row.get("proposed_location_link"),
+            pending_availability_text=row.get("pending_availability_text") or "",
         )
 
     # Idempotent create: upsert rather than plain insert, in case two inbound
@@ -89,6 +103,8 @@ def save_session(session: Session) -> None:
             "proposed_time": session.proposed_time,
             "proposed_time_human": session.proposed_time_human,
             "proposed_location": session.proposed_location,
+            "proposed_location_link": session.proposed_location_link,
+            "pending_availability_text": session.pending_availability_text,
         },
         on_conflict="phone_number",
     ).execute()

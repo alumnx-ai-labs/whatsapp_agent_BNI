@@ -34,6 +34,15 @@ class LocationParse(BaseModel):
         description="True if the reply doesn't specify or imply any location at all "
         "(e.g. 'not sure', 'what do you suggest?')."
     )
+    is_our_office: bool = Field(
+        description="True if the reply is asking about, proposing, or agreeing to meet at OUR "
+        "own office/place (e.g. 'can we meet at your office?', 'your office works', 'sure, your "
+        "place') rather than naming an external venue (a hotel, a cafe, their own office, etc.)."
+    )
+    is_remote: bool = Field(
+        description="True if this is a phone or video call — not a physical place, so no "
+        "address/area/maps link should ever be requested for it."
+    )
 
 
 def _get_structured_model():
@@ -77,7 +86,9 @@ def parse_location(user_text: str) -> dict:
     system = """You extract a clean, short meeting location from a WhatsApp reply to "where would \
 you like to meet?" — normalize conversational phrasing (a question, a suggestion, filler words) into \
 a plain location description rather than echoing the raw text back. If the reply doesn't specify or \
-imply a location at all, set needs_clarification to true instead of guessing."""
+imply a location at all, set needs_clarification to true instead of guessing. Separately, flag \
+is_our_office when the reply is about meeting at OUR office rather than naming an external venue, \
+and flag is_remote when it's a phone/video call rather than a physical place."""
 
     result: LocationParse = _get_location_model().invoke(
         [SystemMessage(content=system), HumanMessage(content=user_text)]
@@ -85,7 +96,17 @@ imply a location at all, set needs_clarification to true instead of guessing."""
     return result.model_dump()
 
 
-def confirm_and_book(customer: dict, iso: str, human_readable: str | None, location: str | None = None) -> dict:
+def confirm_and_book(
+    customer: dict,
+    iso: str,
+    human_readable: str | None,
+    location: str | None = None,
+    location_link: str | None = None,
+) -> dict:
+    # location_link is deliberately NOT included here — a raw URL embedded in
+    # this natural-language instruction confused the LLM's argument
+    # extraction in testing (mangled customer_id). It's only ever shown in
+    # the final confirmation_text below, never sent to the tool-call.
     instruction = (
         f"Book a calendar meeting for business '{customer['business_name']}', "
         f"phone {customer['phone_number']}, customer_id {customer['customer_id']}, "
@@ -94,6 +115,15 @@ def confirm_and_book(customer: dict, iso: str, human_readable: str | None, locat
     )
     event = run_tool_call(instruction)
 
-    location_line = f"\nLocation: {location}" if location else ""
-    confirmation_text = f"Meeting confirmed: {human_readable or iso}{location_line}\n{event['title']}"
+    business_name = customer.get("business_name") or ""
+    business_label = f" with {business_name}" if business_name and business_name.lower() != "their business" else ""
+    location_block = f"{location}\n{location_link}" if location and location_link else location
+    confirmation_text = (
+        "✅ *Meeting Confirmed!*\n\n"
+        f"📅 *Date & Time:* {human_readable or iso}\n"
+        f"💼 *Meeting:* Discovery Call{business_label}\n"
+        f"⏳ *Duration:* {event['duration_minutes']} minutes\n"
+        + (f"📍 *Location:* {location_block}\n\n" if location else "\n")
+        + "Looking forward to speaking with you!"
+    )
     return {"confirmation_text": confirmation_text, "event": event}
