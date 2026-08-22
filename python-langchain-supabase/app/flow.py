@@ -24,10 +24,13 @@ async def handle_message(phone: str, text: str) -> str:
         reply = await _handle_start(session, trimmed)
     elif session.state == State.AWAITING_NAME:
         reply = await _handle_name_capture(session, trimmed)
-    elif session.state in (State.ASK_PAIN_POINT, State.AWAITING_ELABORATION):
-        reply = await _handle_pain_point_submission(session, trimmed)
-    elif session.state == State.ASK_MEETING:
-        reply = await _handle_meeting_willingness(session, trimmed)
+    # Pain-point discovery is disabled for now — new flow goes straight from
+    # name/business capture to scheduling. See _handle_pain_point_submission
+    # and _handle_meeting_willingness below (kept, unused) if this comes back.
+    # elif session.state in (State.ASK_PAIN_POINT, State.AWAITING_ELABORATION):
+    #     reply = await _handle_pain_point_submission(session, trimmed)
+    # elif session.state == State.ASK_MEETING:
+    #     reply = await _handle_meeting_willingness(session, trimmed)
     elif session.state == State.PROPOSE_TIME:
         reply = await _handle_availability_reply(session, trimmed)
     elif session.state == State.ASK_LOCATION:
@@ -45,15 +48,15 @@ async def _handle_start(session: Session, text: str = "") -> str:
 
     if not result.get("not_found"):
         session.customer = result
-        set_state(session, State.ASK_PAIN_POINT)
+        set_state(session, State.PROPOSE_TIME)
 
         ctx = run_tool_call(f"Get the prior interaction context for customer_id {result['customer_id']}.")
-        
+
         match = re.search(r"\b(hi|hello|hey)\b", text, re.IGNORECASE)
         greeting_word = match.group(1).capitalize() if match else "Hello"
 
         greeting = context.build_returning_greeting(result, None if ctx.get("not_found") else ctx, greeting_word=greeting_word)
-        return f"{greeting}\n\nIs there any business pain point you have which we can address using AI? Please share the details."
+        return f"{greeting}\n\nCould you share a good date and time to connect with you in person?"
 
     set_state(session, State.AWAITING_NAME)
     return "Hi. Looks like you've visited here for the first time.\n\nPlease share your name and business name."
@@ -68,11 +71,13 @@ async def _handle_name_capture(session: Session, text: str) -> str:
         f"Register a new customer with phone number {session.phone}, name '{name}', business name '{business_name}'."
     )
     session.customer = customer
-    set_state(session, State.ASK_PAIN_POINT)
+    set_state(session, State.PROPOSE_TIME)
 
-    return f"Thanks, {name}! If there is any business pain point you have which we can address using AI, please let me know."
+    return f"Thanks, {name}! Could you share a good date and time to connect with you in person?"
 
 
+# Pain-point discovery is disabled for now (new flow skips straight from
+# name/business capture to scheduling) — kept here, unused, in case it comes back.
 async def _handle_pain_point_submission(session: Session, text: str) -> str:
     session.pending_pain_point = text
     result = pain_point_agent.validate_pain_point(text)
