@@ -90,9 +90,7 @@ async def inbound_webhook_sync(payload: SyncWebhookIn):
     trimmed_text = (payload.text or "").strip().lower()
     is_ours = (
         trimmed_text == PAIN_POINT_TRIGGER_PHRASE
-        or trimmed_text.startswith("hi")
-        or trimmed_text.startswith("hello")
-        or trimmed_text.startswith("hey")
+        or "oscar" in trimmed_text
         or session_store.has_active_session(payload.phone)
     )
     if not is_ours:
