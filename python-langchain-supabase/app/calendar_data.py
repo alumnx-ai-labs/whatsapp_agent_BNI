@@ -6,8 +6,19 @@ idempotent: the same (customer, start_iso) pair always resolves to the same
 import os
 import random
 import string
+import time
+
+from postgrest.exceptions import APIError
 
 from app.db import get_client
+
+# Empirically, a customer inserted moments earlier can still trip
+# meetings_customer_id_fkey on the very next request — the row shows up if you
+# just check again a moment later, so this is a transient consistency gap
+# (Supabase's pooled/replicated Postgres), not a real "customer doesn't
+# exist" case. Retry briefly instead of failing the whole booking.
+FK_VIOLATION = "23503"
+CUSTOMER_FK_RETRY_DELAYS = (0.5, 1.0, 2.0)
 
 
 def book_meeting(
@@ -52,23 +63,30 @@ def book_meeting(
         # rsvp_link = event["htmlLink"]
         raise NotImplementedError(f"CALENDAR_PROVIDER={provider} not implemented yet")
 
-    row = (
-        get_client()
-        .table("meetings")
-        .insert(
-            {
-                "customer_id": customer_id,
-                "idempotency_key": idempotency_key,
-                "start_iso": start_iso,
-                "title": title,
-                "rsvp_link": rsvp_link,
-                "status": "confirmed",
-                "location": location,
-            }
-        )
-        .execute()
-        .data[0]
-    )
+    payload = {
+        "customer_id": customer_id,
+        "idempotency_key": idempotency_key,
+        "start_iso": start_iso,
+        "title": title,
+        "rsvp_link": rsvp_link,
+        "status": "confirmed",
+        "location": location,
+    }
+
+    row = None
+    for attempt, delay in enumerate((0, *CUSTOMER_FK_RETRY_DELAYS)):
+        if delay:
+            time.sleep(delay)
+        try:
+            row = get_client().table("meetings").insert(payload).execute().data[0]
+            break
+        except APIError as e:
+            # meetings' only FK is customer_id -> customers, so the code alone
+            # is enough to identify this (constraint name lives in e.message,
+            # not e.details — checked against the real error shape below).
+            if e.code != FK_VIOLATION or attempt == len(CUSTOMER_FK_RETRY_DELAYS):
+                raise
+
     return {
         "id": row["id"],
         "title": row["title"],
