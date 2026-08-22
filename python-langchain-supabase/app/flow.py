@@ -125,7 +125,12 @@ async def _handle_availability_reply(session: Session, text: str) -> str:
 
 
 async def _handle_location_reply(session: Session, text: str) -> str:
-    session.proposed_location = text
+    parsed = scheduling_agent.parse_location(text)
+
+    if parsed["needs_clarification"] or not parsed["location"]:
+        return 'Where would you like to meet? (e.g. "your office", "Taj Hotel", or "phone call")'
+
+    session.proposed_location = parsed["location"]
 
     result = scheduling_agent.confirm_and_book(
         session.customer,
