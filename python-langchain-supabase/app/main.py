@@ -87,6 +87,14 @@ async def inbound_webhook_sync(payload: SyncWebhookIn):
     # if it's the QR code's trigger phrase (a brand-new pain-point
     # conversation) or this phone already has one in progress — otherwise
     # tell the caller to fall through to its own (e.g. alumni) logic.
+    # TEMPORARY: echo mode. Claims EVERY message on this shared number and
+    # replies with the exact same text — used to test whether the Node
+    # relay's synchronous response actually gets delivered to WhatsApp at
+    # all, independent of ticket state or trigger-phrase matching. Unset
+    # ECHO_MODE (or delete this block) to restore the real is_ours gating.
+    if os.environ.get("ECHO_MODE", "").lower() == "true":
+        return {"handled": True, "reply": payload.text or "(empty message)"}
+
     trimmed_text = (payload.text or "").strip().lower()
     is_ours = trimmed_text == PAIN_POINT_TRIGGER_PHRASE or session_store.has_active_session(payload.phone)
     if not is_ours:
