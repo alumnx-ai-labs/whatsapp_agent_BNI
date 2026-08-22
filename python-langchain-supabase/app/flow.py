@@ -197,12 +197,21 @@ async def _handle_location_detail_reply(session: Session, text: str) -> str:
 
 
 async def _finalize_booking(session: Session) -> str:
-    result = scheduling_agent.confirm_and_book(
-        session.customer,
-        session.proposed_time,
-        session.proposed_time_human,
-        location=session.proposed_location,
-        location_link=session.proposed_location_link,
-    )
+    try:
+        result = scheduling_agent.confirm_and_book(
+            session.customer,
+            session.proposed_time,
+            session.proposed_time_human,
+            location=session.proposed_location,
+            location_link=session.proposed_location_link,
+        )
+    except Exception as e:  # noqa: BLE001
+        # Don't let this bubble up to a raw 500 — that surfaces as "Sorry,
+        # could you rephrase that?" from SkaleBot's own fallback, which reads
+        # like the whole system is broken. State is left unchanged (not
+        # DONE), so saying "yes" again retries this exact step.
+        print(f"[flow] booking failed, asking customer to retry: {e}")
+        return "Sorry, that took a moment too long on our end — could you say that once more to confirm?"
+
     set_state(session, State.DONE)
     return result["confirmation_text"]
