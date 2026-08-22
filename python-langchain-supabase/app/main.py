@@ -88,7 +88,11 @@ async def inbound_webhook_sync(payload: SyncWebhookIn):
     # conversation) or this phone already has one in progress — otherwise
     # tell the caller to fall through to its own (e.g. alumni) logic.
     trimmed_text = (payload.text or "").strip().lower()
-    is_ours = trimmed_text == PAIN_POINT_TRIGGER_PHRASE or session_store.has_active_session(payload.phone)
+    is_ours = (
+        trimmed_text == PAIN_POINT_TRIGGER_PHRASE
+        or "oscar" in trimmed_text
+        or session_store.has_active_session(payload.phone)
+    )
     if not is_ours:
         return {"handled": False}
 
