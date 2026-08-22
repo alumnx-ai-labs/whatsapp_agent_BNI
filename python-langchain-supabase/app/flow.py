@@ -15,6 +15,9 @@ from app.session_store import State, Session, get_session, save_session, set_sta
 
 MAX_ELABORATION_ATTEMPTS = 3
 
+OUR_OFFICE_ADDRESS = "Kondapur, Hyderabad"
+OUR_OFFICE_MAPS_LINK = "https://maps.app.goo.gl/TNUaymUBpUS56N8p7"
+
 
 async def handle_message(phone: str, text: str) -> str:
     session = get_session(phone)
@@ -35,6 +38,10 @@ async def handle_message(phone: str, text: str) -> str:
         reply = await _handle_availability_reply(session, trimmed)
     elif session.state == State.ASK_LOCATION:
         reply = await _handle_location_reply(session, trimmed)
+    elif session.state == State.ASK_LOCATION_CONFIRM:
+        reply = await _handle_location_confirm_reply(session, trimmed)
+    elif session.state == State.ASK_LOCATION_DETAIL:
+        reply = await _handle_location_detail_reply(session, trimmed)
     else:
         set_state(session, State.START)
         reply = await _handle_start(session, trimmed)
@@ -113,11 +120,18 @@ async def _handle_meeting_willingness(session: Session, text: str) -> str:
 
 
 async def _handle_availability_reply(session: Session, text: str) -> str:
-    parsed = scheduling_agent.parse_availability(text)
+    # Accumulate across "could you be more specific" rounds — otherwise a date
+    # given in one message ("29th aug") and a time given in the next ("5pm")
+    # get parsed one at a time, and the second message alone (with no date in
+    # it) silently overrides/loses the first instead of combining with it.
+    combined_text = f"{session.pending_availability_text} {text}".strip()
+    parsed = scheduling_agent.parse_availability(combined_text)
 
     if not parsed["parsed"] or parsed["needs_clarification"]:
+        session.pending_availability_text = combined_text
         return 'Could you share a specific day and time (e.g. "Thursday 3pm")? I want to make sure I book the right slot.'
 
+    session.pending_availability_text = ""
     session.proposed_time = parsed["iso"]
     session.proposed_time_human = parsed.get("human_readable")
     set_state(session, State.ASK_LOCATION)
@@ -126,17 +140,63 @@ async def _handle_availability_reply(session: Session, text: str) -> str:
 
 async def _handle_location_reply(session: Session, text: str) -> str:
     parsed = scheduling_agent.parse_location(text)
+    return await _process_parsed_location(session, parsed)
 
+
+async def _handle_location_confirm_reply(session: Session, text: str) -> str:
+    affirmative = bool(re.search(r"\b(yes|sure|ok(ay)?|sounds good|works|yeah|yep|perfect|great)\b", text, re.I))
+
+    if affirmative:
+        return await _finalize_booking(session)
+
+    # Not a "yes" — treat the reply as a different location instead.
+    parsed = scheduling_agent.parse_location(text)
+    return await _process_parsed_location(
+        session, parsed, fallback_prompt='Where would you like to meet instead? (e.g. "Taj Hotel", or "phone call")'
+    )
+
+
+async def _process_parsed_location(session: Session, parsed: dict, fallback_prompt: str | None = None) -> str:
     if parsed["needs_clarification"] or not parsed["location"]:
-        return 'Where would you like to meet? (e.g. "your office", "Taj Hotel", or "phone call")'
+        return fallback_prompt or 'Where would you like to meet? (e.g. "your office", "Taj Hotel", or "phone call")'
+
+    if parsed.get("is_our_office"):
+        # They're asking about/proposing our own office — we have real
+        # address info to share, so confirm it rather than booking blind.
+        session.proposed_location = f"Our office, {OUR_OFFICE_ADDRESS}"
+        session.proposed_location_link = OUR_OFFICE_MAPS_LINK
+        set_state(session, State.ASK_LOCATION_CONFIRM)
+        return (
+            f"Sure, our office is located at {OUR_OFFICE_ADDRESS}. {OUR_OFFICE_MAPS_LINK}\n\n"
+            "Does that work for you?"
+        )
 
     session.proposed_location = parsed["location"]
 
+    if parsed.get("is_remote"):
+        # Phone/video call — no physical address to ask for.
+        return await _finalize_booking(session)
+
+    # An external physical venue (their office, a cafe, a named place) — ask
+    # for enough detail to actually find it before locking it in.
+    set_state(session, State.ASK_LOCATION_DETAIL)
+    return f'Could you share the address, area, or a Google Maps link for {parsed["location"]}?'
+
+
+async def _handle_location_detail_reply(session: Session, text: str) -> str:
+    detail = text.strip()
+    if detail:
+        session.proposed_location = f"{session.proposed_location} ({detail})" if session.proposed_location else detail
+    return await _finalize_booking(session)
+
+
+async def _finalize_booking(session: Session) -> str:
     result = scheduling_agent.confirm_and_book(
         session.customer,
         session.proposed_time,
         session.proposed_time_human,
         location=session.proposed_location,
+        location_link=session.proposed_location_link,
     )
     set_state(session, State.DONE)
     return result["confirmation_text"]
