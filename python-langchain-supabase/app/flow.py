@@ -160,6 +160,12 @@ async def _process_parsed_location(session: Session, parsed: dict, fallback_prom
     if parsed["needs_clarification"] or not parsed["location"]:
         return fallback_prompt or 'Where would you like to meet? (e.g. "your office", "Taj Hotel", or "phone call")'
 
+    # Clear any stale link from an earlier "our office" pass before deciding
+    # again — otherwise switching to a different location later (e.g. after
+    # rejecting our office in favor of an external venue) keeps showing our
+    # office's maps link on a meeting that isn't at our office.
+    session.proposed_location_link = None
+
     if parsed.get("is_our_office"):
         # They're asking about/proposing our own office — we have real
         # address info to share, so confirm it rather than booking blind.
